@@ -156,15 +156,15 @@ relevant numbered item here. If your TA/ma'am gives a different ruling before su
 Confirm the extracted `search.zip` matches what the PDF assumes before writing any code.
 
 ### Acceptance Criteria
-- [ ] `search.zip` extracted with folder structure intact (`layouts/`, `test_cases/`, all root `.py` files present).
-- [ ] `python3 --version` ≥ 3.7 confirmed and recorded (for README later).
-- [ ] `python pacman.py` runs with no search logic and shows the game window / text display without crashing.
-- [ ] `python autograder.py -q q1` run once *before* any code is written, to confirm it currently fails
-      (baseline — this is your `/tdd` red state for AI-01).
-- [ ] Confirm which files are actually editable vs. forbidden by grepping for `"*** YOUR CODE HERE ***"` — only
+- [x] `search.zip` extracted with folder structure intact (`layouts/`, `test_cases/`, all root `.py` files present).
+- [x] `python3 --version` ≥ 3.7 confirmed and recorded (for README later: Python 3.14.7).
+- [x] `python pacman.py` runs with no search logic and shows the game window / text display without crashing.
+- [x] `python autograder.py -q q1` run once *before* any code is written, to confirm it currently fails
+      (baseline — this is your `/tdd` red state for AI-01: 0/3).
+- [x] Confirm which files are actually editable vs. forbidden by grepping for `"*** YOUR CODE HERE ***"` — only
       `search.py` and `searchAgents.py` should contain these markers. If any forbidden file also contains one,
-      flag it immediately (it shouldn't, based on inspection, but verify on your own copy).
-- [ ] Create `evidence/` and `evidence/screenshots/` directories (required by Section 5's ZIP layout, not
+      flag it immediately (verified: only search.py and searchAgents.py).
+- [x] Create `evidence/` and `evidence/screenshots/` directories (required by Section 5's ZIP layout, not
       present in the starter).
 
 ### Notes
