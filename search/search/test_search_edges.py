@@ -157,6 +157,13 @@ class CornersProblemTest(unittest.TestCase):
         nextStates = {s[0][0]: s[0] for s in self.problem.getSuccessors(state)}
         self.assertEqual(nextStates[first][1], (first, last))
 
+    def test_successor_onto_a_corner_adds_it_when_none_visited_yet(self):
+        corner = self.problem.corners[0]
+        x, y = corner
+        state = ((x + 1, y), ())
+        nextStates = {s[0][0]: s[0] for s in self.problem.getSuccessors(state)}
+        self.assertEqual(nextStates[corner][1], (corner,))
+
     def test_start_on_a_corner_counts_that_corner_as_visited(self):
         corner = self.problem.corners[1]
         self.problem.startingPosition = corner
