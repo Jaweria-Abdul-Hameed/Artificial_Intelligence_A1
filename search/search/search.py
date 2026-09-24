@@ -96,7 +96,8 @@ def _depthFirstSearch(problem, ordered):
         explored.add(state)
         successors = problem.getSuccessors(state)
         if ordered:
-            successors = reorderSuccessors(successors)
+            # Stack is LIFO: push in reverse so North is popped/expanded first.
+            successors = reorderSuccessors(successors)[::-1]
         for successor, action, _ in successors:
             if successor not in explored:
                 fringe.push((successor, actions + [action]))
