@@ -176,8 +176,28 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start = problem.getStartState()
+    # Same shape as uniformCostSearch, but ordered by f(n) = g(n) + h(n).  The
+    # item is the bare state so PriorityQueue.update can lower its priority.
+    # No closed set: a state is re-opened whenever a cheaper path to it turns
+    # up, which keeps A* optimal even for admissible-but-inconsistent h.
+    fringe = util.PriorityQueue()
+    fringe.push(start, heuristic(start, problem))
+    cost_so_far = {start: 0}
+    paths = {start: []}
+
+    while not fringe.isEmpty():
+        state = fringe.pop()
+        if problem.isGoalState(state):
+            return paths[state]
+        for successor, action, stepCost in problem.getSuccessors(state):
+            newCost = cost_so_far[state] + stepCost
+            if newCost < cost_so_far.get(successor, float('inf')):
+                cost_so_far[successor] = newCost
+                paths[successor] = paths[state] + [action]
+                fringe.update(successor, newCost + heuristic(successor, problem))
+
+    return []
 
 
 # Abbreviations
