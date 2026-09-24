@@ -200,9 +200,33 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     return []
 
 
+def greedyBestFirstSearch(problem: SearchProblem, heuristic=nullHeuristic):
+    """Search the node that looks closest to the goal (lowest h) first."""
+    start = problem.getStartState()
+    # Priority is h(n) alone, so a state's priority never changes: the first
+    # path that reaches it is kept and it is never re-queued (no update needed).
+    fringe = util.PriorityQueue()
+    fringe.push(start, heuristic(start, problem))
+    paths = {start: []}
+    seen = {start}
+
+    while not fringe.isEmpty():
+        state = fringe.pop()
+        if problem.isGoalState(state):
+            return paths[state]
+        for successor, action, _ in problem.getSuccessors(state):
+            if successor not in seen:
+                seen.add(successor)
+                paths[successor] = paths[state] + [action]
+                fringe.push(successor, heuristic(successor, problem))
+
+    return []
+
+
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
 dfsNESW = depthFirstSearchNESW
 astar = aStarSearch
 ucs = uniformCostSearch
+gbfs = greedyBestFirstSearch
