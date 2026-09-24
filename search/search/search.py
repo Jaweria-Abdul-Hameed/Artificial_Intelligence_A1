@@ -124,8 +124,23 @@ def depthFirstSearchNESW(problem: SearchProblem):
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start = problem.getStartState()
+    fringe = util.Queue()
+    fringe.push((start, []))
+    # Every state that is in the frontier or already expanded.  Checked before
+    # pushing so a state is enqueued at most once (keeps BFS optimal).
+    seen = {start}
+
+    while not fringe.isEmpty():
+        state, actions = fringe.pop()
+        if problem.isGoalState(state):
+            return actions
+        for successor, action, _ in problem.getSuccessors(state):
+            if successor not in seen:
+                seen.add(successor)
+                fringe.push((successor, actions + [action]))
+
+    return []
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
