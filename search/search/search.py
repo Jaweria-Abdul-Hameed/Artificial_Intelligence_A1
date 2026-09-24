@@ -8,6 +8,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from game import Directions
 
 class SearchProblem:
     """
@@ -72,15 +73,13 @@ def tinyMazeSearch(problem):
 # To revert/flip the default on demand, change ENFORCE_NESW_DFS only.
 # No other algorithm uses reorderSuccessors unless a ticket explicitly calls it.
 ENFORCE_NESW_DFS = False
-NESW_ORDER = ['North', 'East', 'South', 'West']
+NESW_RANK = {Directions.NORTH: 0, Directions.EAST: 1,
+             Directions.SOUTH: 2, Directions.WEST: 3}
 
 def reorderSuccessors(successors):
-    """Sort successors into N->E->S->W; non-direction actions keep their
-    relative position (stable sort, rank 0)."""
-    def rank(successor):
-        action = successor[1]
-        return NESW_ORDER.index(action) if action in NESW_ORDER else 0
-    return sorted(successors, key=rank)
+    """Sort successors into N->E->S->W; non-direction actions go last and
+    keep their relative order (stable sort)."""
+    return sorted(successors, key=lambda s: NESW_RANK.get(s[1], len(NESW_RANK)))
 
 def _depthFirstSearch(problem, ordered):
     fringe = util.Stack()
