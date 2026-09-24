@@ -1,8 +1,12 @@
 """Checks for the opt-in N->E->S->W ordering in search.py (AI-01).
 
-Run from this folder: python test_dfs_order.py
+Run from anywhere: python search/search/test_dfs_order.py
 """
+import os
+import sys
 import unittest
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import search
 
