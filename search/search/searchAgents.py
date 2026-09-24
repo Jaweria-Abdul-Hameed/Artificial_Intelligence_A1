@@ -360,8 +360,22 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    position, visited = state
+    remaining = [c for c in corners if c not in visited]
+
+    # Length of the shortest tour from `here` through every corner in `left`,
+    # using Manhattan distance and ignoring walls.  Walls can only make real
+    # paths longer, so this never overestimates (admissible), and it is the
+    # exact optimum of a relaxed problem, so it is also consistent.  At most
+    # 4 corners -> at most 24 orderings.
+    def shortestTour(here, left):
+        if not left:
+            return 0
+        return min(util.manhattanDistance(here, c) +
+                   shortestTour(c, [o for o in left if o != c])
+                   for c in left)
+
+    return shortestTour(position, remaining)
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
