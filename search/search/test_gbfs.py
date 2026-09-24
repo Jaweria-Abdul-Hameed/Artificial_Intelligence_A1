@@ -9,20 +9,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import search
-
-
-class GraphProblem(search.SearchProblem):
-    def __init__(self, edges, start, goal):
-        self.edges, self.start, self.goal = edges, start, goal
-
-    def getStartState(self):
-        return self.start
-
-    def isGoalState(self, state):
-        return state == self.goal
-
-    def getSuccessors(self, state):
-        return self.edges.get(state, [])
+from graph_problem import GraphProblem
 
 
 # S->A looks closer to the goal (h=1) but A->G is expensive; S->B->G is cheaper.

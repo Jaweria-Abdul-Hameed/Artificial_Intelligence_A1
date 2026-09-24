@@ -6,6 +6,7 @@ Run from anywhere: python search/search/test_search_edges.py
 import os
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -13,20 +14,8 @@ import layout
 import pacman
 import search
 import searchAgents
-
-
-class GraphProblem(search.SearchProblem):
-    def __init__(self, edges, start, goal):
-        self.edges, self.start, self.goal = edges, start, goal
-
-    def getStartState(self):
-        return self.start
-
-    def isGoalState(self, state):
-        return state == self.goal
-
-    def getSuccessors(self, state):
-        return self.edges.get(state, [])
+import util
+from graph_problem import GraphProblem
 
 
 ALGORITHMS = {
@@ -88,8 +77,25 @@ class BfsUcsTest(unittest.TestCase):
         # C is first discovered via B at cost 4, then via A at cost 2.
         edges = {'S': [('B', 'b', 1), ('A', 'a', 1)], 'B': [('C', 'c', 3)],
                  'A': [('C', 'c', 1)], 'C': [('G', 'g', 1)]}
-        plan = search.uniformCostSearch(GraphProblem(edges, 'S', 'G'))
+        updates, pops = [], []
+        RealQueue = util.PriorityQueue  # the patch below replaces util's name
+
+        class SpyQueue(RealQueue):
+            def update(self, item, priority):
+                updates.append((item, priority))
+                RealQueue.update(self, item, priority)
+
+            def pop(self):
+                item = RealQueue.pop(self)
+                pops.append(item)
+                return item
+
+        with mock.patch.object(util, 'PriorityQueue', SpyQueue):
+            plan = search.uniformCostSearch(GraphProblem(edges, 'S', 'G'))
         self.assertEqual(plan, ['a', 'c', 'g'])
+        self.assertIn(('C', 4), updates)
+        self.assertIn(('C', 2), updates)   # decrease-key, not a second push
+        self.assertEqual(pops.count('C'), 1)  # C is queued/expanded once
 
 
 class AStarTest(unittest.TestCase):
@@ -142,18 +148,31 @@ class CornersProblemTest(unittest.TestCase):
         self.problem.getSuccessors(self.problem.getStartState())
         self.assertEqual(self.problem._expanded, before + 1)
 
-    def test_successor_adds_a_reached_corner_in_canonical_order(self):
-        corner = self.problem.corners[0]
-        x, y = corner
-        # step onto the corner from the square below/right of it
-        state = ((x + 1, y), ())
+    def test_successor_keeps_visited_corners_in_canonical_order(self):
+        first, last = self.problem.corners[0], self.problem.corners[3]
+        x, y = first
+        # already visited corners[3]; step onto corners[0] from beside it.
+        # Canonical order is corners order, not arrival order.
+        state = ((x + 1, y), (last,))
         nextStates = {s[0][0]: s[0] for s in self.problem.getSuccessors(state)}
-        self.assertEqual(nextStates[corner][1], (corner,))
+        self.assertEqual(nextStates[first][1], (first, last))
 
-    def test_no_successor_enters_a_wall(self):
-        for (position, _), _, _ in self.problem.getSuccessors(
-                self.problem.getStartState()):
-            self.assertFalse(self.problem.walls[position[0]][position[1]])
+    def test_start_on_a_corner_counts_that_corner_as_visited(self):
+        corner = self.problem.corners[1]
+        self.problem.startingPosition = corner
+        self.assertEqual(self.problem.getStartState(), (corner, (corner,)))
+
+    def test_successors_are_exactly_the_open_neighbours_everywhere(self):
+        walls = self.problem.walls
+        for x in range(walls.width):
+            for y in range(walls.height):
+                if walls[x][y]:
+                    continue
+                expected = {(x + dx, y + dy)
+                            for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0))
+                            if not walls[x + dx][y + dy]}
+                got = {s[0][0] for s in self.problem.getSuccessors(((x, y), ()))}
+                self.assertEqual(got, expected, (x, y))
 
 
 if __name__ == '__main__':
