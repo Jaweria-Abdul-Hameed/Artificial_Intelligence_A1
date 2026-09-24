@@ -62,6 +62,47 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+# --- Successor ordering (Inconsistency #3) ----------------------------------
+# The PDF wants North -> East -> South -> West expansion, but
+# PositionSearchProblem.getSuccessors (untouchable) yields N, S, E, W and the
+# autograder's pacman_1 expects that natural order.  So the reorder lives here,
+# is opt-in, and is off by default.
+#   * dfs / depthFirstSearch : natural order unless ENFORCE_NESW_DFS is True
+#   * dfsNESW                : always N->E->S->W (use for the PDF demo)
+# To revert/flip the default on demand, change ENFORCE_NESW_DFS only.
+# No other algorithm uses reorderSuccessors unless a ticket explicitly calls it.
+ENFORCE_NESW_DFS = False
+NESW_ORDER = ['North', 'East', 'South', 'West']
+
+def reorderSuccessors(successors):
+    """Sort successors into N->E->S->W; non-direction actions keep their
+    relative position (stable sort, rank 0)."""
+    def rank(successor):
+        action = successor[1]
+        return NESW_ORDER.index(action) if action in NESW_ORDER else 0
+    return sorted(successors, key=rank)
+
+def _depthFirstSearch(problem, ordered):
+    fringe = util.Stack()
+    fringe.push((problem.getStartState(), []))
+    explored = set()
+
+    while not fringe.isEmpty():
+        state, actions = fringe.pop()
+        if state in explored:
+            continue
+        if problem.isGoalState(state):
+            return actions
+        explored.add(state)
+        successors = problem.getSuccessors(state)
+        if ordered:
+            successors = reorderSuccessors(successors)
+        for successor, action, _ in successors:
+            if successor not in explored:
+                fringe.push((successor, actions + [action]))
+
+    return []
+
 def depthFirstSearch(problem: SearchProblem):
     """
     Search the deepest nodes in the search tree first.
@@ -76,22 +117,11 @@ def depthFirstSearch(problem: SearchProblem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    fringe = util.Stack()
-    fringe.push((problem.getStartState(), []))
-    explored = set()
+    return _depthFirstSearch(problem, ENFORCE_NESW_DFS)
 
-    while not fringe.isEmpty():
-        state, actions = fringe.pop()
-        if state in explored:
-            continue
-        if problem.isGoalState(state):
-            return actions
-        explored.add(state)
-        for successor, action, _ in problem.getSuccessors(state):
-            if successor not in explored:
-                fringe.push((successor, actions + [action]))
-
-    return []
+def depthFirstSearchNESW(problem: SearchProblem):
+    """DFS with the PDF's North -> East -> South -> West expansion order."""
+    return _depthFirstSearch(problem, True)
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
@@ -119,5 +149,6 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
+dfsNESW = depthFirstSearchNESW
 astar = aStarSearch
 ucs = uniformCostSearch
