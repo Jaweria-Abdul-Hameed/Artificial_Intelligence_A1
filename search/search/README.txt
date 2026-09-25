@@ -3,7 +3,7 @@ AI2002 - Artificial Intelligence - Assignment 01 (Pacman Search)
 
 GROUP MEMBERS
   Jaweria Abdul Hameed   24i-3025
-  Group partner          24i-3135   (full name: to be filled in before submission)
+  Mohsin Khan            24i-3135
 
 ENVIRONMENT
   Python        3.14.7 (any Python 3.7+ works; no third-party packages needed)

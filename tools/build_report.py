@@ -131,7 +131,7 @@ BODY = """
   <div class="kicker">AI2002 &middot; Assignment 01 &middot; Search</div>
   <h1>Teaching Pacman to search</h1>
   <div class="meta">Five search algorithms, two multi-goal problems, a CSV trace for every run and one deliberately deceptive maze.<br>
-  Jaweria Abdul Hameed (24i-3025) &middot; 24i-3135</div>
+  Jaweria Abdul Hameed (24i-3025) &middot; Mohsin Khan (24i-3135)</div>
  </div>
  <div class="stats">
   <div class="stat"><b>%(grade)s</b><span>autograder points, %(gradenote)s</span></div>
