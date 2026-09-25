@@ -1,202 +1,163 @@
-# Pacman Search Project (Artificial Intelligence — Assignment 01)
+# Pacman Search Project
 
-**Course:** AI2002 – Artificial Intelligence  
-**Deadline:** 27th September 2026  
-**Total Marks:** 150 Marks  
-**Team Members:**
-- **Jaweria Abdul Hameed** (Roll No: `24i-3025`)
-- **Group Partner** (Roll No: `24i-3135`)
+**AI2002 – Artificial Intelligence · Assignment 01 · Deadline 27 September 2026 · 150 marks**
 
----
+| Team member | Roll no. |
+|:---|:---|
+| Jaweria Abdul Hameed | 24i-3025 |
+| Mohsin Khan | 24i-3135 |
 
-## 📖 Project Overview
+Five search algorithms, two multi-goal problems, an automatic CSV trace for every run, and a custom maze built to fool greedy search, all on the UC Berkeley Pacman framework.
 
-This repository contains the implementation of search algorithms for the UC Berkeley Pacman AI framework for **AI2002: Assignment 01**. Pacman navigates through various mazes and food environments to find paths to goals using both uninformed and informed search techniques, multi-goal state space formulations, heuristic design, and automated execution logging.
-
-### Key Capabilities & Objectives
-1. **Uninformed Search:**
-   - **Depth-First Search (DFS):** Graph search utilizing a LIFO Stack from `util.py`.
-   - **Breadth-First Search (BFS):** Graph search utilizing a FIFO Queue from `util.py` guaranteeing optimal path length on unweighted graphs.
-2. **Informed Search:**
-   - **Uniform-Cost Search (UCS):** Priority Queue ordered by path cost $g(n)$, with frontier re-prioritization (`update`).
-   - **Greedy Best-First Search (GBFS):** Priority Queue ordered strictly by heuristic $h(n)$ with dynamic CLI parameter passing.
-   - **A* Search:** Priority Queue ordered by $f(n) = g(n) + h(n)$ verifying path optimality with consistent heuristics.
-3. **Multi-Goal State Spaces & Custom Heuristics:**
-   - **Corners Problem (`CornersProblem`):** State representation as `(position, tuple_of_visited_corners)` to visit all four maze corners.
-   - **Corners Heuristic (`cornersHeuristic`):** Mathematically admissible and consistent heuristic.
-   - **Eating All Food Dots (`FoodSearchProblem` & `foodHeuristic`):** Minimum Spanning Tree (MST) / bottleneck heuristic to optimize expansions on `trickySearch`.
-   - **Nearest Food Dot (`AnyFoodSearchProblem` & `ClosestDotSearchAgent`):** Fast dot collection using BFS.
-4. **Automated CSV Trace Logging:**
-   - Step-by-step state expansion logging directly to CSV files inside `evidence/`.
-5. **Custom Maze Design & Analysis:**
-   - Custom layout `layouts/24i3025Search.lay` featuring decision branches, dead ends, and deceptive heuristic traps contrasting GBFS and A*.
+**Status:** all tickets AI-00 to AI-13 are done. `python autograder.py` scores **26/25** (q1–q8 at full marks; q7 earns bonus credit with 255 nodes against a top threshold of 7000).
 
 ---
 
-## 📁 Repository Structure & File Rules
+## What was built
 
-Following strict assignment instructions, we only write code where required (`"*** YOUR CODE HERE ***"` markers) and never modify core engine files.
+| Task | Where | Notes |
+|:---|:---|:---|
+| **DFS** | `search.py` | LIFO `util.Stack`, explicit explored set. `fn=dfs` keeps the natural successor order the autograder expects; `fn=dfsNESW` applies the PDF's North-East-South-West order. |
+| **BFS** | `search.py` | FIFO `util.Queue`; a state is enqueued at most once, so paths are shortest on unit costs. |
+| **UCS** | `search.py` | `util.PriorityQueue` ordered by g(n); `update` lowers the priority of a state already on the fringe. |
+| **GBFS** | `search.py` | Ordered by h(n) only; `gbfs` / `greedyBestFirstSearch`; heuristic passed on the command line. |
+| **A\*** | `search.py` | f(n) = g(n) + h(n); re-opens a state when a cheaper path appears. |
+| **CSV logger** | `search.py` | One shared `SearchLogger`, called from inside each algorithm's own loop. |
+| **CornersProblem** | `searchAgents.py` | State is `(position, visited corners)`, corners kept in a fixed order so equal sets are equal states. |
+| **cornersHeuristic** | `searchAgents.py` | Exact shortest Manhattan tour over the unvisited corners. Admissible and consistent. |
+| **foodHeuristic** | `searchAgents.py` | Nearest dot + minimum spanning tree over the remaining dots, using true maze distances (cached). Admissible and consistent. |
+| **AnyFoodSearchProblem / ClosestDotSearchAgent** | `searchAgents.py` | Goal test is "standing on food"; BFS finds the nearest dot. |
+| **Custom maze** | `layouts/24i3025Search.lay` | Branches, dead ends and a serpentine decoy; GBFS returns 47 steps, A\* returns 37. |
+
+Every algorithm is written directly inside its own provided function. The one exception is `depthFirstSearch`, which delegates to `_depthFirstSearch` so the N-E-S-W option can be switched on.
+
+Only `search.py`, `searchAgents.py` and the new layout were edited. `pacman.py`, `game.py`, `util.py`, `layout.py`, `graphicsDisplay.py`, `graphicsUtils.py` and `textDisplay.py` are byte-identical to the starter code, the `SearchAgent`, `PositionSearchProblem` and `FoodSearchProblem` classes are unchanged, and all 7 `# DO NOT CHANGE` lines are intact.
+
+---
+
+## Results
+
+Path cost and nodes expanded, straight from the run output and cross-checked against each CSV.
+
+| Run | Cost | Nodes |
+|:---|---:|---:|
+| DFS tinyMaze / mediumMaze / bigMaze | 10 / 130 / 210 | 15 / 146 / 390 |
+| DFS N-E-S-W mediumMaze | 244 | 267 |
+| BFS mediumMaze / bigMaze | 68 / 210 | 269 / 620 |
+| UCS mediumMaze | 68 | 269 |
+| GBFS bigMaze (Manhattan / Euclidean) | 210 / 210 | 466 / 471 |
+| A\* bigMaze (null / Manhattan) | 210 / 210 | 620 / 549 |
+| BFS tinyCorners | 28 | 252 |
+| A\* mediumCorners | 106 | 741 |
+| A\* trickySearch | 60 | 255 |
+| ClosestDot bigSearch | 350 | one BFS per dot |
+
+**The greedy trap** (`24i3025Search`): DFS 47 steps, BFS 37, UCS 37, **GBFS 47** (54 nodes), **A\* 37** (84 nodes). Greedy search expands fewer nodes but commits to a long serpentine that looks close to the goal in Manhattan distance; A\* adds the cost already paid and takes the shorter route.
+
+---
+
+## Repository layout
 
 ```
 .
-├── search/search/
-│   ├── search.py                  # PRIMARY EDITABLE: DFS, BFS, UCS, GBFS, A*, CSV Logger
-│   ├── searchAgents.py            # SECONDARY EDITABLE: CornersProblem, food heuristics, ClosestDot
-│   ├── pacman.py                  # SYSTEM CORE - DO NOT MODIFY
-│   ├── game.py                    # SYSTEM CORE - DO NOT MODIFY
-│   ├── util.py                    # SYSTEM CORE - DO NOT MODIFY (Stack, Queue, PriorityQueue)
-│   ├── layout.py                  # SYSTEM CORE - DO NOT MODIFY
-│   ├── graphicsDisplay.py         # SYSTEM CORE - DO NOT MODIFY
-│   ├── graphicsUtils.py           # SYSTEM CORE - DO NOT MODIFY
-│   ├── textDisplay.py             # SYSTEM CORE - DO NOT MODIFY
-│   ├── autograder.py              # Automated test harness (q1-q8)
-│   ├── layouts/                   # Standard mazes + custom 24i3025Search.lay
-│   └── test_cases/                # Question test configurations (q1-q8)
-├── evidence/                      # Execution CSV trace logs & screenshots
-├── tickets.md                     # Complete project ticket backlog (AI-00 to AI-13)
-├── Assignment 01.pdf              # Official assignment specification
-└── README.md                      # Project documentation and guide
+├── search/search/                 # the project folder that gets zipped
+│   ├── search.py                  # EDITED: DFS, BFS, UCS, GBFS, A*, CSV logger
+│   ├── searchAgents.py            # EDITED: corners, food heuristic, closest dot
+│   ├── layouts/24i3025Search.lay  # ADDED: custom maze
+│   ├── evidence/                  # ADDED: 22 CSV traces + screenshots/ (22 PNGs)
+│   ├── README.txt                 # ADDED: submission README (specs, commands)
+│   ├── report.pdf                 # ADDED: 7-page report
+│   ├── pacman.py game.py util.py layout.py
+│   │   graphicsDisplay.py graphicsUtils.py textDisplay.py   # untouched
+│   ├── autograder.py, test_cases/ # starter test harness (q1-q8)
+│   └── test_*.py, graph_problem.py# our own tests (kept out of the ZIP)
+├── tools/                         # helper scripts, not part of the submission
+│   ├── run_experiments.py         # reruns every command: CSVs, screenshots, results.json
+│   ├── snap.py                    # screenshot of a finished game
+│   ├── build_report.py           # results.json + screenshots -> report.pdf
+│   ├── build_dashboard.py         # -> interactive results explorer (dashboard.html)
+│   └── make_zip.py                # builds and verifies SearchProject.zip
+├── docs/                          # agent and issue-tracker notes
+├── tickets.md                     # original ticket backlog and PDF/code discrepancies
+└── Assignment 01.pdf              # the assignment
 ```
 
 ---
 
-## ⚠️ Codebase Inconsistencies & Resolutions (Read First)
+## Running it
 
-As documented in `tickets.md` Section 0, cross-referencing `Assignment 01.pdf` with the starter code revealed 8 specific discrepancies:
+Python 3.7+ with Tk (bundled with Python). No third-party packages are needed for the project itself; the helper scripts in `tools/` also use Pillow, and `build_report.py` needs Edge or Chrome. Run everything below from `search/search`.
 
-1. **Forbidden Files vs. CSV Logging:**  
-   CSV logging is implemented entirely inside `search.py` using Python's standard library `csv` module, preserving all forbidden files untouched.
-2. **Task 4 (GBFS) Missing in Starter Code:**  
-   `search.py` did not contain a `greedyBestFirstSearch` stub or `gbfs` alias, and `autograder.py` contains no test for GBFS. We implement `greedyBestFirstSearch` in `search.py` and verify it manually against A*.
-3. **DFS Successor Order vs. Autograder:**  
-   The PDF mentions North → East → South → West expansion order. However, the standard autograder (`q1`) expects the natural order returned by `PositionSearchProblem` (`[North, South, East, West]`). Forcing reordering breaks `q1/pacman_1.test`. DFS uses the natural order for standard autograder compatibility.
-4. **Nonexistent UCS Layouts in PDF:**  
-   The PDF references `mediumDenselyMaze` (nonexistent) and `stayEastSearch` (an agent class, not a layout). Working substitutes: `python pacman.py -l mediumMaze -p StayEastSearchAgent` and `python pacman.py -l mediumMaze -z .5 -p SearchAgent -a fn=ucs`.
-5. **Custom Layout Naming:**  
-   Resolved to `layouts/24i3025Search.lay` to follow Section 4, Section 5, and student roll number conventions.
-6. **CSV Schema for Uninformed Search:**  
-   $g, h, f$ columns are maintained across all algorithms; for DFS/BFS, $h=0$ and $f=g$ to preserve uniform CSV schemas.
-7. **Team Size vs. Submission Filename:**  
-   Both group members (`24i-3025` and `24i-3135`) are documented in the submission documentation, while the layout file is prefixed with `24i3025Search.lay`.
-8. **Protected Inline Comments:**  
-   All 7 `# DO NOT CHANGE` lines and protected classes (`SearchAgent`, `PositionSearchProblem`, `FoodSearchProblem`) in `searchAgents.py` are strictly preserved.
-
----
-
-## 🚀 Quick Start & Environment Setup
-
-Verify Python 3 (Python 3.7+ recommended) is installed:
-```bash
-python --version
-# or
-python3 --version
-```
-
-Navigate to the project directory and test running the base game:
 ```bash
 cd search/search
-python pacman.py
+python pacman.py                    # sanity check
+python autograder.py                # all of q1-q8
+python autograder.py -q q7          # one question
+```
+
+| Task | Commands |
+|:---|:---|
+| 1 DFS | `python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=dfsNESW` |
+| 2 BFS | `python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs` |
+| 3 UCS | `python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs -z .5`<br>`python pacman.py -l mediumMaze -p StayEastSearchAgent` |
+| 4 GBFS | `python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=euclideanHeuristic` |
+| 5 A\* | `python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=nullHeuristic`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic` |
+| 6 Corners | `python pacman.py -l tinyCorners -p SearchAgent -a fn=bfs,prob=CornersProblem`<br>`python pacman.py -l mediumCorners -p AStarCornersAgent -z .5` |
+| 7 Food | `python pacman.py -l trickySearch -p AStarFoodSearchAgent`<br>`python pacman.py -l bigSearch -p ClosestDotSearchAgent` |
+| Custom maze | `python pacman.py -l 24i3025Search -p SearchAgent -a fn=<dfs\|bfs\|ucs>`<br>`... -a fn=gbfs,heuristic=manhattanHeuristic`<br>`... -a fn=astar,heuristic=manhattanHeuristic` |
+
+Add `-q` to any command to run without a window.
+
+### CSV traces
+
+Every run started through `pacman.py` writes `evidence/<algorithm>_<layout>[_<tag>]_<timestamp>.csv` with the columns
+
+`iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f`
+
+One row per expanded state (plus the goal row). DFS, BFS and UCS log `h = 0`, `f = g` so every file has the same schema; GBFS logs `f = h`. Logging is off under the autograder. `SEARCH_LOG=0/1` forces it off/on, `SEARCH_LOG_DIR` redirects the folder and `SEARCH_LOG_TAG` adds a label to the file name. The `explored` column lists every state expanded so far, so large runs give large files (mediumCorners is about 6.6 MB).
+
+### Regenerating the evidence
+
+From the repo root:
+
+```bash
+python tools/run_experiments.py     # CSVs, screenshots, tools/results.json, autograder score
+python tools/build_report.py        # search/search/report.pdf
+python tools/build_dashboard.py     # tools/dashboard.html
+python tools/make_zip.py            # SearchProject.zip + checks
 ```
 
 ---
 
-## 🧪 Search Tasks & Execution Commands
+## Where the PDF and the starter code disagree
 
-### Task 1: Depth-First Search (DFS)
-```bash
-python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs
-python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs
-python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs
-python autograder.py -q q1
-```
+Handled without editing any forbidden file. Full detail is in `tickets.md` section 0, `search/search/README.txt` and the report appendix.
 
-### Task 2: Breadth-First Search (BFS)
-```bash
-python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs
-python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs
-python autograder.py -q q2
-```
-
-### Task 3: Uniform-Cost Search (UCS)
-```bash
-python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs
-python pacman.py -l mediumMaze -z .5 -p SearchAgent -a fn=ucs
-python pacman.py -l mediumMaze -p StayEastSearchAgent
-python autograder.py -q q3
-```
-
-### Task 4: Greedy Best-First Search (GBFS)
-```bash
-python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic
-python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=euclideanHeuristic
-```
-
-### Task 5: A* Search
-```bash
-python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=nullHeuristic
-python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic
-python autograder.py -q q4
-```
-
-### Task 6: Multi-Goal Search (Corners Problem)
-```bash
-python pacman.py -l tinyCorners -p SearchAgent -a fn=bfs,prob=CornersProblem
-python pacman.py -l mediumCorners -p AStarCornersAgent -z .5
-python autograder.py -q q5
-python autograder.py -q q6
-```
-
-### Task 7: Eating All Food Dots & Nearest Food Search
-```bash
-python pacman.py -l trickySearch -p AStarFoodSearchAgent
-python pacman.py -l bigSearch -p ClosestDotSearchAgent
-python autograder.py -q q7
-python autograder.py -q q8
-```
-
-### Section 4: Custom Maze Testing
-```bash
-python pacman.py -l 24i3025Search -p SearchAgent -a fn=dfs
-python pacman.py -l 24i3025Search -p SearchAgent -a fn=bfs
-python pacman.py -l 24i3025Search -p SearchAgent -a fn=ucs
-python pacman.py -l 24i3025Search -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic
-python pacman.py -l 24i3025Search -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic
-```
-
-### Complete Autograder Run
-```bash
-python autograder.py --no-graphics
-```
+1. **CSV logging vs. forbidden files.** The logger lives in `search.py`, so no forbidden file changes.
+2. **GBFS has no stub and no autograder question.** `gbfs` / `greedyBestFirstSearch` was added to `search.py`; `SearchAgent` finds it with `getattr`. It is covered by our own tests instead.
+3. **N-E-S-W order.** `PositionSearchProblem.getSuccessors` (untouchable) returns N, S, E, W and the autograder expects that order for `fn=dfs`. The PDF order is available as `fn=dfsNESW`; `ENFORCE_NESW_DFS` in `search.py` flips the default. The PDF states the rule only under Task 1, so the other algorithms keep the natural order.
+4. **Two UCS commands cannot run.** `mediumDenselyMaze` and `stayEastSearch` are not layouts. Substitutes: `-l mediumMaze ... fn=ucs -z .5` and `-l mediumMaze -p StayEastSearchAgent`.
+5. **Layout name.** Step 2 says `Search.lay`, Section 4 says `[YourID]Search.lay`; we use `24i3025Search.lay`. The goal sits at (1, 1) because `SearchAgent` uses that default goal.
+6. **CSV schema for uninformed search.** `h = 0`, `f = g` so all files share the same columns.
+7. **Two-person group.** Both members are named in the READMEs and the report; the layout uses the first ID.
+8. **Protected code.** The 7 `# DO NOT CHANGE` lines and the three protected classes are unchanged.
 
 ---
 
-## 📋 Ticket Backlog Index (`tickets.md`)
+## Submission package
 
-| Ticket ID | Title | Module | Autograder | Status |
-|:---|:---|:---|:---|:---|
-| **AI-00** | Environment & Workspace Setup | Core / Infra | — | Pending |
-| **AI-01** | Task 1 — Depth-First Search | `search.py` | `q1` | Pending |
-| **AI-02** | Task 2 — Breadth-First Search | `search.py` | `q2` | Pending |
-| **AI-03** | Task 3 — Uniform-Cost Search | `search.py` | `q3` | Pending |
-| **AI-04** | Task 4 — Greedy Best-First Search | `search.py` | Manual / Sanity | Pending |
-| **AI-05** | Task 5 — A* Search | `search.py` | `q4` | Pending |
-| **AI-06** | Task 6a — Corners Problem State Space | `searchAgents.py` | `q5` | Pending |
-| **AI-07** | Task 6b — Corners Heuristic | `searchAgents.py` | `q6` | Pending |
-| **AI-08** | Task 7a — Food Heuristic (MST / bottleneck) | `searchAgents.py` | `q7` | Pending |
-| **AI-08b** | Task 7b — AnyFoodSearchProblem & ClosestDot | `searchAgents.py` | `q8` | Pending |
-| **AI-09** | CSV Trace Logger (Section 3, cross-cutting) | `search.py` | Manual QA | Pending |
-| **AI-10** | Custom Layout + 5-Algorithm Matrix | Layouts / Exp | Manual / Screenshots | Pending |
-| **AI-11** | README.txt | Documentation | — | Pending |
-| **AI-12** | report.pdf (6–10 pages) | Documentation | — | Pending |
-| **AI-13** | Full Autograder Pass + Final Packaging | Packaging / QA | `q1`–`q8` | Pending |
+`python tools/make_zip.py` builds `SearchProject.zip` (kept out of git) with a single `SearchProject/` folder that matches the PDF's Section 5 layout: the starter code, the edited `search.py` and `searchAgents.py`, `layouts/` with the custom maze, `README.txt`, `report.pdf`, and `evidence/` with all CSVs and screenshots. Our own test files are left out. The script unzips the result into a temp folder and checks that no test files are inside, that the seven forbidden files match the starter commit byte for byte, and that the autograder still gives 26/25.
 
----
+## Rubric (150 marks)
 
-## 🎯 Evaluation Rubric Summary (150 Marks Total)
-
-- **Automated Test Cases Execution (20 Marks):** 100% pass across standard tests and search problems.
-- **Live Demonstration / Viva Defense (20 Marks):** Live code walkthrough, answering line-by-line questions.
-- **Search Implementations (50 Marks):** A* (10), UCS (10), DFS (10), BFS (10), GBFS (10).
-- **Heuristic Design & Multi-Goal (20 Marks):** Admissibility/consistency proofs (10), Corners/Food state space (10).
-- **Execution Logging & Custom Experiments (20 Marks):** Automated CSV logging in `evidence/` (10), custom `.lay` maze & tables (10).
-- **Documentation & Code Quality (20 Marks):** Comprehensive report.pdf (10), clean Python code & formatting (10).
+| Category | Marks | Where it is covered |
+|:---|---:|:---|
+| Automated test execution | 20 | `python autograder.py` |
+| Live demonstration / viva | 20 | commands above, `search/search/README.txt` |
+| A\*, UCS, DFS, BFS, GBFS (10 each) | 50 | `search.py` |
+| Heuristic design and analysis | 10 | report section 3 |
+| Multi-goal search tasks | 10 | `searchAgents.py`, report section 2 |
+| Automatic CSV trace logging | 10 | `SearchLogger`, `evidence/` |
+| Custom maze and experiments | 10 | `layouts/24i3025Search.lay`, report sections 4 and 5 |
+| Report and complexity analysis | 10 | `report.pdf` |
+| Code quality and style | 10 | comments, interface rules kept |
