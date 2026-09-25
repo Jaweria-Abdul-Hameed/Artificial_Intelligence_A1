@@ -20,6 +20,10 @@ BROWSERS = [r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
 data = json.load(open(os.path.join(ROOT, 'tools', 'results.json')))
 R = {e['label']: e for e in data['experiments']}
 BROKEN = {b['label']: b for b in data['broken']}
+GRADE = data['autograder']
+GRADE_TOTAL = '%g/%g' % tuple(GRADE['total'])
+GRADE_PASSING = all(q['got'] >= q['max'] for q in GRADE['questions'])
+Q7 = next(q for q in GRADE['questions'] if q['q'] == 'q7')
 
 
 def n(label, key='nodes'):
@@ -130,7 +134,7 @@ BODY = """
   Jaweria Abdul Hameed (24i-3025) &middot; 24i-3135</div>
  </div>
  <div class="stats">
-  <div class="stat"><b>26/25</b><span>autograder points, q1&ndash;q8 all passing</span></div>
+  <div class="stat"><b>%(grade)s</b><span>autograder points, %(gradenote)s</span></div>
   <div class="stat"><b>%(q7)s</b><span>nodes expanded by A* on trickySearch (top threshold: 7000)</span></div>
   <div class="stat"><b>%(gb)s vs %(as)s</b><span>path length, GBFS vs A* on the custom maze</span></div>
   <div class="stat"><b>%(ncsv)d</b><span>CSV traces in evidence/</span></div>
@@ -241,7 +245,7 @@ BODY = """
  Adding the edge <i>f</i>&ndash;<i>g</i> to a minimum tree of <i>F'</i> spans <i>F</i>, so MST(<i>F</i>) &le; MST(<i>F'</i>) + <i>d</i>(<i>f</i>, <i>g</i>).
  Also min <i>d</i>(<i>p</i>, &middot;) &le; <i>d</i>(<i>p</i>, <i>f</i>) = 1. Adding, <i>h</i>(<i>s</i>) &le; 1 + MST(<i>F'</i>) + <i>d</i>(<i>f</i>, <i>g</i>) = 1 + <i>h</i>(<i>s'</i>).</div>
  <p>The autograder confirms it on every provided test: it checks that the heuristic never exceeds the true cost and never drops by more than the step cost.
- On trickySearch it reports <b>%(q7)s expanded nodes</b> against the thresholds 15000 / 12000 / 9000 / 7000, so the question scores 5 of 4.</p>
+ On trickySearch it reports <b>%(q7)s expanded nodes</b> against the thresholds 15000 / 12000 / 9000 / 7000, so the question scores %(q7score)s.</p>
 </section>
 
 <section class="page">
@@ -334,10 +338,6 @@ BODY = """
 
 def main():
     csvs = [f for f in os.listdir(os.path.join(PROJECT, 'evidence')) if f.endswith('.csv')]
-    sample = ''
-    for f in csvs:
-        if f.startswith('astar_%s' % 'trickySearch') or f.startswith('custom'):
-            continue
     sample_file = [f for f in csvs if f.startswith('astar_24i3025Search')][0]
     import csv
     with open(os.path.join(PROJECT, 'evidence', sample_file), newline='') as fh:
@@ -346,6 +346,9 @@ def main():
 
     g = lambda k, key='cost': int(R[k][key])
     ctx = dict(
+        grade=GRADE_TOTAL,
+        gradenote='q1&ndash;q8 all at full marks' if GRADE_PASSING else 'not every question at full marks',
+        q7score='%g of %g' % (Q7['got'], Q7['max']),
         q7=n('astar_trickySearch'), gb=g('custom_gbfs'), **{'as': g('custom_astar')},
         ncsv=len(csvs), csvsample=html.escape(sample),
         chart_big=bars(bigMaze, hilite={'A* (Manhattan)': 'var(--yellow)'}),

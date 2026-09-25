@@ -133,8 +133,9 @@ footer{color:var(--muted);font-size:12px}
 <script>
 const RUNS = /*RUNS*/[];
 const byId = Object.fromEntries(RUNS.map(r => [r.id, r]));
-const GRADES = [['q1','Depth-first',3,3],['q2','Breadth-first',3,3],['q3','Uniform-cost',3,3],['q4','A*',3,3],
-  ['q5','Corners problem',3,3],['q6','Corners heuristic',3,3],['q7','Food heuristic',5,4],['q8','Closest dot',3,3]];
+const AUTOGRADER = /*GRADES*/[];
+const QNAMES = {q1:'Depth-first',q2:'Breadth-first',q3:'Uniform-cost',q4:'A*',q5:'Corners problem',q6:'Corners heuristic',q7:'Food heuristic',q8:'Closest dot'};
+const GRADES = AUTOGRADER.questions.map(q => [q.q, QNAMES[q.q] || q.q, q.got, q.max]);
 const el = id => document.getElementById(id);
 const fmt = v => v == null ? '–' : (Number.isInteger(v) ? v : v.toFixed(2));
 const custom = {DFS:'custom_dfs',BFS:'custom_bfs',UCS:'custom_ucs',GBFS:'custom_gbfs','A*':'custom_astar'};
@@ -142,7 +143,7 @@ const custom = {DFS:'custom_dfs',BFS:'custom_bfs',UCS:'custom_ucs',GBFS:'custom_
 // summary strip
 const gb = byId.custom_gbfs, as = byId.custom_astar;
 el('strip').innerHTML = [
-  ['26 / 25','autograder points across q1–q8','hot'],
+  [AUTOGRADER.total[0] + ' / ' + AUTOGRADER.total[1],'autograder points across q1–q8','hot'],
   [RUNS.length,'runs traced to CSV, each with a screenshot',''],
   [byId.astar_trickySearch.nodes,'nodes for A* on trickySearch (top mark at 7000)',''],
   [gb.cost + ' vs ' + as.cost,'GBFS vs A* path cost on the custom maze','hot']
@@ -205,7 +206,7 @@ function drawTrap() {
 }
 
 // autograder
-el('grader').innerHTML = GRADES.map(g => `<div class="q"><div class="k">${g[0].toUpperCase()}</div><b>${g[2]}/${g[3]}</b><span>${g[1]}</span><br><span class="pass">PASS</span></div>`).join('');
+el('grader').innerHTML = GRADES.map(g => `<div class="q"><div class="k">${g[0].toUpperCase()}</div><b>${g[2]}/${g[3]}</b><span>${g[1]}</span><br><span class="pass">${g[2] >= g[3] ? "PASS" : "CHECK"}</span></div>`).join('');
 
 drawChips(); drawList(); drawDetail(); drawTrap();
 </script>

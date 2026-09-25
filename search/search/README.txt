@@ -70,7 +70,11 @@ CSV TRACE LOGGING
   One row per expanded state.  For DFS, BFS and UCS h = 0 and f = g so every
   file has the same schema; GBFS logs f = h (it orders by h alone).  Logging
   is off under the autograder.  Set SEARCH_LOG=0 to switch it off, SEARCH_LOG=1
-  to force it on, or SEARCH_LOG_DIR=<folder> to redirect the output.
+  to force it on, SEARCH_LOG_DIR=<folder> to redirect the output, or
+  SEARCH_LOG_TAG=<label> to insert a label into the file name.
+  The explored column lists every state expanded so far, so a file grows with the
+  square of the run length (mediumCorners is about 6.6 MB).  fn=dfsNESW logs as
+  dfsNESW_<layout>_<timestamp>.csv.
   ClosestDotSearchAgent runs one BFS per dot; all of them are appended to a
   single CSV (iteration keeps counting up across the sub-searches).
 

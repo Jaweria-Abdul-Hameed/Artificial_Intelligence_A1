@@ -61,6 +61,11 @@ EXPERIMENTS = [
      '-l %s -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic' % CUSTOM),
 ]
 
+# File-name label for runs that would otherwise share algorithm + layout
+TAGS = {'ucs_mediumMaze_z': 'zoom', 'ucs_stayEast': 'StayEastSearchAgent',
+        'gbfs_bigMaze': 'manhattan', 'gbfs_bigMaze_euclid': 'euclidean',
+        'astar_bigMaze': 'manhattan', 'astar_bigMaze_null': 'null'}
+
 # Literal PDF commands that reference files that do not exist (Inconsistency #4).
 BROKEN = [
     ('pdf_mediumDenselyMaze', '-l mediumDenselyMaze -p SearchAgent -a fn=ucs'),
@@ -68,9 +73,10 @@ BROKEN = [
 ]
 
 
-def run(args, timeout=600):
+def run(args, timeout=600, tag=''):
     start = time.time()
-    proc = subprocess.run([sys.executable, 'pacman.py'] + args.split(),
+    env = dict(os.environ, SEARCH_LOG_TAG=tag)
+    proc = subprocess.run([sys.executable, 'pacman.py'] + args.split(), env=env,
                           cwd=PROJECT, capture_output=True, text=True, timeout=timeout)
     return proc, time.time() - start
 
@@ -95,7 +101,7 @@ def main():
     results = []
     for label, task, desc, args in EXPERIMENTS:
         before = set(glob.glob(os.path.join(EVIDENCE, '*.csv')))
-        proc, wall = run(args + ' -q')
+        proc, wall = run(args + ' -q', tag=TAGS.get(label, ''))
         made = sorted(set(glob.glob(os.path.join(EVIDENCE, '*.csv'))) - before)
         row = {'label': label, 'task': task, 'description': desc, 'command': 'python pacman.py ' + args,
                'csv': [os.path.basename(p) for p in made], 'returncode': proc.returncode}
@@ -115,8 +121,15 @@ def main():
         tail = (proc.stderr or proc.stdout).strip().splitlines()[-1:]
         broken.append({'label': label, 'command': 'python pacman.py ' + args,
                        'returncode': proc.returncode, 'message': tail})
+    grader = subprocess.run([sys.executable, 'autograder.py', '--no-graphics'], cwd=PROJECT,
+                            capture_output=True, text=True, timeout=900).stdout
+    questions = [{'q': m[0], 'got': float(m[1]), 'max': float(m[2])}
+                 for m in re.findall(r'^Question (q\d): ([\d.]+)/([\d.]+) ?$', grader, re.M)]
+    total = re.search(r'^Total: ([\d.]+)/([\d.]+)', grader, re.M)
+    autograder = {'questions': questions,
+                  'total': [float(total.group(1)), float(total.group(2))] if total else None}
     with open(os.path.join(ROOT, 'tools', 'results.json'), 'w') as fh:
-        json.dump({'experiments': results, 'broken': broken}, fh, indent=2)
+        json.dump({'experiments': results, 'broken': broken, 'autograder': autograder}, fh, indent=2)
     print('wrote tools/results.json')
 
 

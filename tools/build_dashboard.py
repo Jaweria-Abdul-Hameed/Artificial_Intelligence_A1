@@ -32,7 +32,7 @@ for e in data['experiments']:
                  'csv': e['csv'][0] if e['csv'] else '', 'img': inline(e['label'])})
 
 PAGE = open(os.path.join(ROOT, 'tools', 'dashboard_template.html'), encoding='utf-8').read()
-PAGE = PAGE.replace('/*RUNS*/[]', json.dumps(runs))
+PAGE = PAGE.replace('/*RUNS*/[]', json.dumps(runs)).replace('/*GRADES*/[]', json.dumps(data['autograder']))
 out = os.path.join(ROOT, 'tools', 'dashboard.html')
 open(out, 'w', encoding='utf-8').write(PAGE)
 print('wrote', out, '%.0f KB' % (os.path.getsize(out) / 1024.0))

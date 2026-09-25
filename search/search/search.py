@@ -72,7 +72,8 @@ def tinyMazeSearch(problem):
 # Logging is ON when the program is started through pacman.py and OFF under the
 # autograder / when imported (so tests don't litter evidence/).  Set the
 # environment variable SEARCH_LOG=1 to force it on or SEARCH_LOG=0 to force it
-# off, and SEARCH_LOG_DIR to redirect the output folder.  Internal helper
+# off, SEARCH_LOG_DIR to redirect the output folder and SEARCH_LOG_TAG to add a
+# label to the file name (evidence/<algorithm>_<layout>_<tag>_<timestamp>.csv).  Internal helper
 # searches (mazeDistance inside foodHeuristic, which builds its problem with
 # visualize=False) are never logged.  ClosestDotSearchAgent runs one BFS per
 # dot; all of them are appended to a single file per run.
@@ -94,7 +95,8 @@ def _layoutName():
     reduced to a filename-safe token."""
     import os, re, sys
     args = sys.argv[1:]
-    name = 'mediumClassic'   # pacman.py's default layout
+    # pacman.py falls back to mediumClassic when no layout is given
+    name = 'mediumClassic' if os.path.basename(sys.argv[0]) == 'pacman.py' else 'unknown'
     for i, arg in enumerate(args):
         if arg in ('-l', '--layout') and i + 1 < len(args):
             name = args[i + 1]
@@ -106,7 +108,7 @@ def _layoutName():
             name = arg[2:]
             break
     name = os.path.splitext(os.path.basename(name.replace('\\', '/')))[0]
-    return re.sub(r'[^A-Za-z0-9._-]', '-', name) or 'mediumClassic'
+    return re.sub(r'[^A-Za-z0-9._-]', '-', name) or 'unknown'
 
 def _fmtState(state):
     """Compact text for a state; food grids are shown as (position, dots left)."""
@@ -155,11 +157,13 @@ class SearchLogger:
 
     def _open(self):
         """Create (or reopen) the CSV and write the header when the file is new."""
-        import csv, os, time
+        import csv, os, re, time
         os.makedirs(self.dir, exist_ok=True)
         path = SearchLogger._appendFiles.get(self.key) if self.append else None
         if path is None:
-            stem = '%s_%s_%s' % (self.key[0], self.key[1], time.strftime('%Y%m%d_%H%M%S'))
+            tag = re.sub(r'[^A-Za-z0-9._-]', '-', os.environ.get('SEARCH_LOG_TAG', ''))
+            stem = '_'.join(filter(None, [self.key[0], self.key[1], tag,
+                                         time.strftime('%Y%m%d_%H%M%S')]))
             path = os.path.join(self.dir, stem + '.csv')
             n = 1
             while os.path.exists(path):
@@ -241,7 +245,7 @@ def _depthFirstSearch(problem, ordered):
     fringe = util.Stack()
     fringe.push((problem.getStartState(), []))
     explored = set()
-    log = SearchLogger('dfs', problem)
+    log = SearchLogger('dfsNESW' if ordered else 'dfs', problem)
 
     while not fringe.isEmpty():
         before = log.snapshot(fringe)
@@ -417,7 +421,8 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
             if newCost < cost_so_far.get(successor, float('inf')):
                 cost_so_far[successor] = newCost
                 paths[successor] = paths[state] + [action]
-                hvals[successor] = heuristic(successor, problem)
+                if successor not in hvals:
+                    hvals[successor] = heuristic(successor, problem)
                 fringe.update(successor, newCost + hvals[successor])
                 generated.append((successor, action, stepCost))
         log.expand(state, generated, before, fringe, h)

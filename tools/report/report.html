@@ -51,7 +51,7 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
   Jaweria Abdul Hameed (24i-3025) &middot; 24i-3135</div>
  </div>
  <div class="stats">
-  <div class="stat"><b>26/25</b><span>autograder points, q1&ndash;q8 all passing</span></div>
+  <div class="stat"><b>26/25</b><span>autograder points, q1&ndash;q8 all at full marks</span></div>
   <div class="stat"><b>255</b><span>nodes expanded by A* on trickySearch (top threshold: 7000)</span></div>
   <div class="stat"><b>47 vs 37</b><span>path length, GBFS vs A* on the custom maze</span></div>
   <div class="stat"><b>22</b><span>CSV traces in evidence/</span></div>
@@ -74,7 +74,7 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
  The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
  GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.</div>
- <div class="csv">evidence/astar_24i3025Search_20260925_112044.csv
+ <div class="csv">evidence/astar_24i3025Search_20260925_113355.csv
 iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
 1,(23, 6),,,[(23, 7) via North, (22, 6) via West],[(23, 6):27],[(22, 6):27, (23, 7):29],[],0,27,27
 2,(22, 6),(23, 6),West,[(21, 6) via West],[(22, 6):27, (23, 7):29],[(21, 6):27, (23, 7):29],[(23, 6)],1,26,27
@@ -199,7 +199,7 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
 <tr><td>UCS mediumMaze</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
 <tr><td>UCS mediumMaze (substitute for mediumDenselyMaze)</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
 <tr><td>UCS StayEastSearchAgent mediumMaze</td><td class="num">1</td><td class="num">260</td><td class="num">0.00</td></tr>
-<tr><td>GBFS bigMaze (Manhattan)</td><td class="num">210</td><td class="num">466</td><td class="num">0.00</td></tr>
+<tr><td>GBFS bigMaze (Manhattan)</td><td class="num">210</td><td class="num">466</td><td class="num">0.10</td></tr>
 <tr><td>GBFS bigMaze (Euclidean)</td><td class="num">210</td><td class="num">471</td><td class="num">0.10</td></tr>
 <tr><td>A* bigMaze (null heuristic)</td><td class="num">210</td><td class="num">620</td><td class="num">0.10</td></tr>
 <tr><td>A* bigMaze (Manhattan)</td><td class="num">210</td><td class="num">549</td><td class="num">0.10</td></tr>
