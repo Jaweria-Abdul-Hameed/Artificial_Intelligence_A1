@@ -94,7 +94,7 @@ def _layoutName():
     reduced to a filename-safe token."""
     import os, re, sys
     args = sys.argv[1:]
-    name = 'unknown'
+    name = 'mediumClassic'   # pacman.py's default layout
     for i, arg in enumerate(args):
         if arg in ('-l', '--layout') and i + 1 < len(args):
             name = args[i + 1]
@@ -106,7 +106,7 @@ def _layoutName():
             name = arg[2:]
             break
     name = os.path.splitext(os.path.basename(name.replace('\\', '/')))[0]
-    return re.sub(r'[^A-Za-z0-9._-]', '-', name) or 'unknown'
+    return re.sub(r'[^A-Za-z0-9._-]', '-', name) or 'mediumClassic'
 
 def _fmtState(state):
     """Compact text for a state; food grids are shown as (position, dots left)."""
@@ -139,7 +139,8 @@ class SearchLogger:
         self.writer = None
 
     def snapshot(self, fringe):
-        """Text snapshot of a util.Stack / Queue / PriorityQueue (None when off)."""
+        """Text snapshot of a util.Stack / Queue / PriorityQueue, next state to be
+        expanded first (None when logging is off)."""
         if not self.enabled:
             return None
         if hasattr(fringe, 'heap'):
@@ -147,7 +148,8 @@ class SearchLogger:
                        for priority, _, item in sorted(fringe.heap)]
         else:
             # Stack / Queue items are (state, actions) pairs
-            entries = [_fmtState(item[0]) for item in fringe.list]
+            # util.Stack and util.Queue both pop from the end of .list
+            entries = [_fmtState(item[0]) for item in reversed(fringe.list)]
         return '[' + ', '.join(entries) + ']'
 
     def _open(self):
@@ -165,7 +167,7 @@ class SearchLogger:
             if self.append:
                 SearchLogger._appendFiles[self.key] = path
         isNew = not os.path.exists(path)
-        self.file = open(path, 'a', newline='')
+        self.file = open(path, 'a', newline='', encoding='utf-8')
         self.writer = csv.writer(self.file)
         if isNew:
             self.writer.writerow(CSV_COLUMNS)
@@ -199,16 +201,18 @@ class SearchLogger:
             if self.file is None:
                 self._open()
             self.writer.writerow(row)
-        except OSError as err:
+        except Exception as err:   # logging must never break a search
             print('[search] CSV logging disabled: %s' % err)
             self.enabled = False
 
     def finish(self):
         """Close the CSV (call at every return point of a search)."""
-        if not self.enabled or self.file is None:
+        if not hasattr(self, 'file'):
             return
         if self.append:
             SearchLogger._appendCount[self.key] = self.iteration
+        if self.file is None:
+            return
         try:
             self.file.close()
         except OSError:
@@ -358,7 +362,8 @@ def greedyBestFirstSearch(problem: SearchProblem, heuristic=nullHeuristic):
     # Priority is h(n) alone, so a state's priority never changes: the first
     # path that reaches it is kept and it is never re-queued (no update needed).
     fringe = util.PriorityQueue()
-    fringe.push(start, heuristic(start, problem))
+    hvals = {start: heuristic(start, problem)}   # h(n), also reused by the CSV logger
+    fringe.push(start, hvals[start])
     paths = {start: []}
     seen = {start}
     log = SearchLogger('gbfs', problem)
@@ -367,7 +372,7 @@ def greedyBestFirstSearch(problem: SearchProblem, heuristic=nullHeuristic):
         before = log.snapshot(fringe)
         state = fringe.pop()
         # GBFS orders by h alone, so f(n) is logged as h(n).
-        h = heuristic(state, problem) if log.enabled else None
+        h = hvals[state]
         if problem.isGoalState(state):
             log.expand(state, [], before, fringe, h, h)
             log.finish()
@@ -377,7 +382,8 @@ def greedyBestFirstSearch(problem: SearchProblem, heuristic=nullHeuristic):
             if successor not in seen:
                 seen.add(successor)
                 paths[successor] = paths[state] + [action]
-                fringe.push(successor, heuristic(successor, problem))
+                hvals[successor] = heuristic(successor, problem)
+                fringe.push(successor, hvals[successor])
                 generated.append((successor, action, stepCost))
         log.expand(state, generated, before, fringe, h, h)
 
@@ -392,7 +398,8 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     # No closed set: a state is re-opened whenever a cheaper path to it turns
     # up, which keeps A* optimal even for admissible-but-inconsistent h.
     fringe = util.PriorityQueue()
-    fringe.push(start, heuristic(start, problem))
+    hvals = {start: heuristic(start, problem)}   # h(n), also reused by the CSV logger
+    fringe.push(start, hvals[start])
     cost_so_far = {start: 0}
     paths = {start: []}
     log = SearchLogger('astar', problem)
@@ -400,7 +407,7 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     while not fringe.isEmpty():
         before = log.snapshot(fringe)
         state = fringe.pop()
-        h = heuristic(state, problem) if log.enabled else None
+        h = hvals[state]
         if problem.isGoalState(state):
             log.expand(state, [], before, fringe, h)
             log.finish()
@@ -411,7 +418,8 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
             if newCost < cost_so_far.get(successor, float('inf')):
                 cost_so_far[successor] = newCost
                 paths[successor] = paths[state] + [action]
-                fringe.update(successor, newCost + heuristic(successor, problem))
+                hvals[successor] = heuristic(successor, problem)
+                fringe.update(successor, newCost + hvals[successor])
                 generated.append((successor, action, stepCost))
         log.expand(state, generated, before, fringe, h)
 

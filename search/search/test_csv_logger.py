@@ -5,6 +5,7 @@ Run from anywhere: python search/search/test_csv_logger.py
 import csv
 import glob
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -33,6 +34,9 @@ ALGORITHMS = {
 class CsvLoggerTest(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        search.SearchLogger._appendFiles.clear()
+        search.SearchLogger._appendCount.clear()
         os.environ['SEARCH_LOG'] = '1'
         os.environ['SEARCH_LOG_DIR'] = self.dir
 
@@ -109,13 +113,29 @@ class CsvLoggerTest(unittest.TestCase):
         search.breadthFirstSearch(problem)
         self.assertEqual(os.listdir(self.dir), [])
 
+    def test_queue_frontier_is_listed_next_to_expand_first(self):
+        search.breadthFirstSearch(GraphProblem(EDGES, 'S', 'G'))
+        rows = self.rows('bfs')
+        self.assertEqual(rows[0]['frontier_after'], '[A, B]')   # A was queued first
+        self.assertEqual(rows[1]['frontier_before'], '[A, B]')
+
+    def test_anyfood_sub_searches_share_one_file_with_continuing_iterations(self):
+        class AnyFoodSearchProblem(GraphProblem):
+            pass
+        for _ in range(2):
+            search.breadthFirstSearch(AnyFoodSearchProblem(EDGES, 'S', 'G'))
+        rows = self.rows('bfs')
+        self.assertEqual([r['iteration'] for r in rows], [str(i) for i in range(1, 9)])
+        with open(glob.glob(os.path.join(self.dir, 'bfs_*.csv'))[0], newline='') as fh:
+            self.assertEqual(sum(1 for r in csv.reader(fh) if r[0] == 'iteration'), 1)
+
     def test_layout_name_is_sanitised_from_argv(self):
         saved = sys.argv
         try:
             for argv, want in ((['pacman.py', '-l', 'layouts/my_xmaze.lay'], 'my_xmaze'),
                                (['pacman.py', '-lmediumMaze'], 'mediumMaze'),
                                (['pacman.py', '--layout=tiny Maze'], 'tiny-Maze'),
-                               (['pacman.py'], 'unknown')):
+                               (['pacman.py'], 'mediumClassic')):
                 sys.argv = argv
                 self.assertEqual(search._layoutName(), want)
         finally:
