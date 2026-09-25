@@ -468,8 +468,42 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+    if not foodList:
+        return 0
+
+    # Cache maze distances for the whole search: they only depend on the
+    # (fixed) walls, so each pair is computed by mazeDistance at most once.
+    distCache = problem.heuristicInfo.setdefault('mazeDist', {})
+    def dist(a, b):
+        key = (a, b) if a <= b else (b, a)
+        if key not in distCache:
+            distCache[key] = mazeDistance(a, b, problem.startingGameState)
+        return distCache[key]
+
+    # The MST over the remaining food depends only on which food is left, not
+    # on where Pacman stands, so cache it per food set.
+    mstCache = problem.heuristicInfo.setdefault('mst', {})
+    remaining = frozenset(foodList)
+    if remaining not in mstCache:
+        # Prim's algorithm over maze distances
+        inTree = {foodList[0]}
+        best = {f: dist(foodList[0], f) for f in foodList[1:]}
+        total = 0
+        while best:
+            nxt = min(best, key=best.get)
+            total += best.pop(nxt)
+            inTree.add(nxt)
+            for f in best:
+                d = dist(nxt, f)
+                if d < best[f]:
+                    best[f] = d
+        mstCache[remaining] = total
+
+    # Pacman must reach some dot first (>= nearest dot), then any walk that
+    # visits every dot costs at least the MST weight, so the sum never
+    # overestimates. True maze distances keep it consistent.
+    return min(dist(position, f) for f in foodList) + mstCache[remaining]
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -499,8 +533,8 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # All step costs are 1, so BFS returns the path to the nearest dot.
+        return search.breadthFirstSearch(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -535,8 +569,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         """
         x,y = state
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Goal: Pacman is standing on any remaining food dot
+        return bool(self.food[x][y])
 
 def mazeDistance(point1: Tuple[int, int], point2: Tuple[int, int], gameState: pacman.GameState) -> int:
     """
