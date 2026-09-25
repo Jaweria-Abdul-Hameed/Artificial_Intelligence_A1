@@ -65,15 +65,17 @@ def tinyMazeSearch(problem):
 # --- CSV trace logging (Section 3) -------------------------------------------
 # One shared SearchLogger is used by all five algorithms.  Each algorithm keeps
 # its own loop and only calls the logger from inside it; logging is a pure side
-# effect and never changes what a search returns.
+# effect and never changes what a search returns (an I/O failure just switches
+# logging off with a warning).
 #
 # Rows go to evidence/<algorithm>_<layout>_<timestamp>.csv (next to search.py).
 # Logging is ON when the program is started through pacman.py and OFF under the
 # autograder / when imported (so tests don't litter evidence/).  Set the
 # environment variable SEARCH_LOG=1 to force it on or SEARCH_LOG=0 to force it
-# off.  Internal helper searches (mazeDistance inside foodHeuristic, which builds
-# its problem with visualize=False) are never logged.  ClosestDotSearchAgent runs
-# one BFS per dot; all of them are appended to a single file per run.
+# off, and SEARCH_LOG_DIR to redirect the output folder.  Internal helper
+# searches (mazeDistance inside foodHeuristic, which builds its problem with
+# visualize=False) are never logged.  ClosestDotSearchAgent runs one BFS per
+# dot; all of them are appended to a single file per run.
 CSV_COLUMNS = ['iteration', 'expanded_state', 'parent', 'action',
                'generated_successors', 'frontier_before', 'frontier_after',
                'explored', 'g', 'h', 'f']
@@ -88,23 +90,33 @@ def _loggingEnabled(problem):
     return on and getattr(problem, 'visualize', True)
 
 def _layoutName():
-    import sys
+    """Layout name from the command line (-l NAME, -lNAME, --layout NAME/=NAME),
+    reduced to a filename-safe token."""
+    import os, re, sys
     args = sys.argv[1:]
+    name = 'unknown'
     for i, arg in enumerate(args):
         if arg in ('-l', '--layout') and i + 1 < len(args):
-            return args[i + 1]
+            name = args[i + 1]
+            break
         if arg.startswith('--layout='):
-            return arg.split('=', 1)[1]
-    return 'unknown'
+            name = arg.split('=', 1)[1]
+            break
+        if arg.startswith('-l') and not arg.startswith('--') and len(arg) > 2:
+            name = arg[2:]
+            break
+    name = os.path.splitext(os.path.basename(name.replace('\\', '/')))[0]
+    return re.sub(r'[^A-Za-z0-9._-]', '-', name) or 'unknown'
 
 def _fmtState(state):
     """Compact text for a state; food grids are shown as (position, dots left)."""
-    if isinstance(state, tuple) and len(state) == 2 and hasattr(state[1], 'count')             and hasattr(state[1], 'asList'):
+    if (isinstance(state, tuple) and len(state) == 2
+            and hasattr(state[1], 'count') and hasattr(state[1], 'asList')):
         return '(%s, food=%d)' % (state[0], state[1].count())
     return str(state)
 
 class SearchLogger:
-    """Collects one row per expanded state and writes the CSV when finished."""
+    """Writes one CSV row per expanded state, as the search runs."""
     _appendFiles = {}   # (algorithm, layout) -> path, for repeated sub-searches
     _appendCount = {}   # (algorithm, layout) -> iterations already written there
 
@@ -113,8 +125,6 @@ class SearchLogger:
         if not self.enabled:
             return
         import os
-        self.algorithm = algorithm
-        self.rows = []
         self.iteration = 0
         self.parents = {}    # state -> (parent state, action) of its latest generation
         self.costs = {}      # state -> g(n) along that latest generation
@@ -125,6 +135,8 @@ class SearchLogger:
         self.key = (algorithm, _layoutName())
         if self.append:
             self.iteration = SearchLogger._appendCount.get(self.key, 0)
+        self.file = None
+        self.writer = None
 
     def snapshot(self, fringe):
         """Text snapshot of a util.Stack / Queue / PriorityQueue (None when off)."""
@@ -134,10 +146,29 @@ class SearchLogger:
             entries = ['%s:%s' % (_fmtState(item), priority)
                        for priority, _, item in sorted(fringe.heap)]
         else:
-            entries = [_fmtState(item[0] if isinstance(item, tuple) and len(item) == 2
-                                 and isinstance(item[1], list) else item)
-                       for item in fringe.list]
+            # Stack / Queue items are (state, actions) pairs
+            entries = [_fmtState(item[0]) for item in fringe.list]
         return '[' + ', '.join(entries) + ']'
+
+    def _open(self):
+        """Create (or reopen) the CSV and write the header when the file is new."""
+        import csv, os, time
+        os.makedirs(self.dir, exist_ok=True)
+        path = SearchLogger._appendFiles.get(self.key) if self.append else None
+        if path is None:
+            stem = '%s_%s_%s' % (self.key[0], self.key[1], time.strftime('%Y%m%d_%H%M%S'))
+            path = os.path.join(self.dir, stem + '.csv')
+            n = 1
+            while os.path.exists(path):
+                path = os.path.join(self.dir, '%s_%d.csv' % (stem, n))
+                n += 1
+            if self.append:
+                SearchLogger._appendFiles[self.key] = path
+        isNew = not os.path.exists(path)
+        self.file = open(path, 'a', newline='')
+        self.writer = csv.writer(self.file)
+        if isNew:
+            self.writer.writerow(CSV_COLUMNS)
 
     def expand(self, state, generated, before, fringe, h=0, f=None):
         """Record one expansion.
@@ -155,41 +186,35 @@ class SearchLogger:
         for successor, act, stepCost in generated:
             self.parents[successor] = (state, act)
             self.costs[successor] = g + stepCost
-        self.rows.append([
+        row = [
             self.iteration, _fmtState(state),
             '' if parent is None else _fmtState(parent),
             '' if action is None else action,
             '[' + ', '.join('%s via %s' % (_fmtState(s), a) for s, a, _ in generated) + ']',
             before, self.snapshot(fringe),
             '[' + ', '.join(_fmtState(s) for s in self.explored) + ']',
-            g, h, f])
+            g, h, f]
         self.explored.append(state)
+        try:
+            if self.file is None:
+                self._open()
+            self.writer.writerow(row)
+        except OSError as err:
+            print('[search] CSV logging disabled: %s' % err)
+            self.enabled = False
 
     def finish(self):
-        """Write the CSV (call at every return point of a search)."""
-        if not self.enabled or not self.rows:
+        """Close the CSV (call at every return point of a search)."""
+        if not self.enabled or self.file is None:
             return
-        import csv, os, time
-        os.makedirs(self.dir, exist_ok=True)
-        path = SearchLogger._appendFiles.get(self.key) if self.append else None
-        if path is None:
-            stamp = time.strftime('%Y%m%d_%H%M%S')
-            path = os.path.join(self.dir, '%s_%s_%s.csv' % (self.key[0], self.key[1], stamp))
-            n = 1
-            while os.path.exists(path):
-                path = path[:-4].rsplit('_x', 1)[0] + '_x%d.csv' % n
-                n += 1
-            if self.append:
-                SearchLogger._appendFiles[self.key] = path
-        isNew = not os.path.exists(path)
-        with open(path, 'a', newline='') as fh:
-            writer = csv.writer(fh)
-            if isNew:
-                writer.writerow(CSV_COLUMNS)
-            writer.writerows(self.rows)
         if self.append:
             SearchLogger._appendCount[self.key] = self.iteration
-        self.rows = []
+        try:
+            self.file.close()
+        except OSError:
+            pass
+        self.file = None
+
 
 # --- Successor ordering (Inconsistency #3) ----------------------------------
 # The PDF wants North -> East -> South -> West expansion, but

@@ -109,6 +109,25 @@ class CsvLoggerTest(unittest.TestCase):
         search.breadthFirstSearch(problem)
         self.assertEqual(os.listdir(self.dir), [])
 
+    def test_layout_name_is_sanitised_from_argv(self):
+        saved = sys.argv
+        try:
+            for argv, want in ((['pacman.py', '-l', 'layouts/my_xmaze.lay'], 'my_xmaze'),
+                               (['pacman.py', '-lmediumMaze'], 'mediumMaze'),
+                               (['pacman.py', '--layout=tiny Maze'], 'tiny-Maze'),
+                               (['pacman.py'], 'unknown')):
+                sys.argv = argv
+                self.assertEqual(search._layoutName(), want)
+        finally:
+            sys.argv = saved
+
+    def test_unwritable_evidence_dir_does_not_break_the_search(self):
+        blocker = os.path.join(self.dir, 'blocker')
+        open(blocker, 'w').close()
+        os.environ['SEARCH_LOG_DIR'] = os.path.join(blocker, 'sub')   # cannot be created
+        plan = search.breadthFirstSearch(GraphProblem(EDGES, 'S', 'G'))
+        self.assertEqual(plan, ['a', 'g'])
+
 
 if __name__ == '__main__':
     unittest.main()
