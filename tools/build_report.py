@@ -151,7 +151,7 @@ BODY = """
  <h3>Design rules followed</h3>
  <p>Only <code>search.py</code>, <code>searchAgents.py</code> and the new layout were edited. Every algorithm is written
  inside its own provided function; the single exception is <code>depthFirstSearch</code>, which calls the helper
- <code>_depthFirstSearch</code> so the North-East-South-West order can be switched on without touching
+ <code>_depthFirstSearch</code> so the mandatory North-East-South-West order is enforced without touching
  <code>PositionSearchProblem</code>. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
  <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state with the columns
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
@@ -179,7 +179,7 @@ BODY = """
  function and it is negligible at maze sizes.</p>
  <h3>Implementation notes</h3>
  <ul>
-  <li><b>DFS</b> marks a state explored when it is popped, and skips stale duplicates left on the stack. The N&ndash;E&ndash;S&ndash;W option pushes successors in reverse so North pops first.</li>
+  <li><b>DFS</b> marks a state explored when it is popped, skips stale duplicates, and always pushes reordered successors in reverse so the mandatory N&ndash;E&ndash;S&ndash;W order is expanded correctly by the LIFO stack.</li>
   <li><b>BFS</b> checks a <i>seen</i> set before pushing, so a state enters the queue once. That keeps the first path found the shortest.</li>
   <li><b>UCS</b> queues the bare state and calls <code>PriorityQueue.update</code>, so a cheaper path to a state already in the fringe lowers its priority instead of adding a duplicate. Costs and paths live in dictionaries.</li>
   <li><b>GBFS</b> orders by <code>h</code> only. A state's priority never changes, so it is queued once. The heuristic is passed as <code>heuristic=name</code> on the command line through the unchanged <code>SearchAgent</code>.</li>
@@ -244,7 +244,7 @@ BODY = """
  <i>Case 2, dot <i>f</i> eaten, so <i>p'</i> = <i>f</i> and <i>F'</i> = <i>F</i> &minus; {<i>f</i>}.</i> If <i>F'</i> is empty, <i>h</i>(<i>s</i>) = <i>d</i>(<i>p</i>, <i>f</i>) = 1 and <i>h</i>(<i>s'</i>) = 0. Otherwise let <i>g</i> be the dot of <i>F'</i> nearest to <i>f</i>.
  Adding the edge <i>f</i>&ndash;<i>g</i> to a minimum tree of <i>F'</i> spans <i>F</i>, so MST(<i>F</i>) &le; MST(<i>F'</i>) + <i>d</i>(<i>f</i>, <i>g</i>).
  Also min <i>d</i>(<i>p</i>, &middot;) &le; <i>d</i>(<i>p</i>, <i>f</i>) = 1. Adding, <i>h</i>(<i>s</i>) &le; 1 + MST(<i>F'</i>) + <i>d</i>(<i>f</i>, <i>g</i>) = 1 + <i>h</i>(<i>s'</i>).</div>
- <p>The autograder confirms it on every provided test: it checks that the heuristic never exceeds the true cost and never drops by more than the step cost.
+ <p>The supplied heuristic tests check each fixture's start state against the true cost and check its immediate successor edges for a consistency drop; the proofs above establish the general result.
  On trickySearch it reports <b>%(q7)s expanded nodes</b> against the thresholds 15000 / 12000 / 9000 / 7000, so the question scores %(q7score)s.</p>
 </section>
 
@@ -263,7 +263,7 @@ BODY = """
     <li>On StayEastSearchAgent the cost of a step falls to 0.5<sup>x</sup> toward the east. UCS finds a path of total cost %(stay)s while BFS would ignore costs entirely.</li>
     <li>A* with the Manhattan heuristic expands %(astar_m)s nodes on bigMaze against %(astar_n)s for the null heuristic, which is UCS in disguise. Both return cost 210, so the heuristic saved work without losing optimality.</li>
     <li>GBFS expands fewer nodes than A* on bigMaze (%(gbfs_n)s vs %(astar_m)s) and still returns 210, but that is an accident of this maze. Section 5 shows the case where it does not.</li>
-    <li>DFS returns 130 on mediumMaze where the optimum is 68: cheap to run, no guarantee on quality.</li>
+    <li>DFS returns %(dfs_medium_cost)s on mediumMaze where the optimum is 68: cheap to run, no guarantee on quality.</li>
    </ul>
   </div>
   <div>
@@ -299,7 +299,7 @@ BODY = """
   %(fig_astar)s
  </div>
  <div class="callout">GBFS expands %(gbfs_c)s nodes and A* %(astar_c)s, so greedy is cheaper to run, but its path is %(extra)s steps (%(pct)s%%) longer. BFS and UCS find the same optimum as A*
- with %(bfs_c)s nodes. DFS lands on the decoy route as well (cost %(dfs_cost)s).</div>
+ with %(bfs_c)s nodes. PDF-ordered DFS also reaches the optimal cost %(dfs_cost)s, while expanding %(dfs_c)s nodes.</div>
  <table>
   <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
   %(rows_custom)s
@@ -309,9 +309,7 @@ BODY = """
 <section class="page">
  <h2>Appendix &middot; where the PDF and the starter code disagree</h2>
  <h3>A. North-East-South-West order (Inconsistency #3)</h3>
- <p>Task 1 asks for N&ndash;E&ndash;S&ndash;W expansion, but <code>PositionSearchProblem.getSuccessors</code> is marked &ldquo;do not change&rdquo; and returns N, S, E, W. The autograder's expected DFS answers assume that natural order.
- So the reorder is done inside <code>search.py</code>: <code>fn=dfs</code> keeps the natural order and <code>fn=dfsNESW</code> applies the PDF order. <code>ENFORCE_NESW_DFS</code> flips the default in one place if the TA rules it global.
- The PDF states the order only under Task 1, so BFS, UCS, GBFS and A* keep the natural order.</p>
+ <p>Task 1 requires N&ndash;E&ndash;S&ndash;W expansion, while the protected <code>PositionSearchProblem.getSuccessors</code> returns N, S, E, W. Following the teacher's instruction to obey the PDF without changing protected code, <code>search.py</code> reorders DFS successors and reverses the push order so North is expanded first. Both <code>fn=dfs</code> and the descriptive <code>fn=dfsNESW</code> use this behavior. The starter q1 path fixture assumes its natural order and therefore disagrees with the PDF-mandated route; no protected file or fixture was changed.</p>
  <div class="two">
   %(fig_dfs)s
   %(fig_nesw)s
@@ -358,20 +356,21 @@ def main():
         rows_std=table_rows([l for l in R if not l.startswith('custom')]),
         rows_custom=table_rows([l for l in R if l.startswith('custom')]),
         stay=n('ucs_stayEast', 'cost'), astar_m=n('astar_bigMaze'), astar_n=n('astar_bigMaze_null'),
-        gbfs_n=n('gbfs_bigMaze'),
+        gbfs_n=n('gbfs_bigMaze'), dfs_medium_cost=n('dfs_mediumMaze', 'cost'),
         chart_corner=bars([('CornersProblem BFS (tiny)', g('bfs_tinyCorners', 'nodes')),
                            ('Corners A* (medium)', g('astar_mediumCorners', 'nodes')),
                            ('Food A* (tricky)', g('astar_trickySearch', 'nodes'))], width=340,
                           hilite={}),
-        chart_custom_cost=bars([(a, v) for a, v in customCost], width=340, hilite={'GBFS': 'var(--bad)', 'DFS': 'var(--bad)'}),
+        chart_custom_cost=bars([(a, v) for a, v in customCost], width=340, hilite={'GBFS': 'var(--bad)'}),
         chart_custom=bars(custom, width=340, hilite={'GBFS': 'var(--bad)'}),
         fig_gbfs=fig('custom_gbfs', 'GBFS: follows the serpentine, cost %s, %s nodes.' % (n('custom_gbfs', 'cost'), n('custom_gbfs'))),
         fig_astar=fig('custom_astar', 'A*: takes the top edge, cost %s, %s nodes.' % (n('custom_astar', 'cost'), n('custom_astar'))),
-        gbfs_c=n('custom_gbfs'), astar_c=n('custom_astar'), bfs_c=n('custom_bfs'), dfs_cost=n('custom_dfs', 'cost'),
+        gbfs_c=n('custom_gbfs'), astar_c=n('custom_astar'), bfs_c=n('custom_bfs'),
+        dfs_c=n('custom_dfs'), dfs_cost=n('custom_dfs', 'cost'),
         extra=g('custom_gbfs') - g('custom_astar'),
         pct=round(100.0 * (g('custom_gbfs') - g('custom_astar')) / g('custom_astar')),
-        fig_dfs=fig('dfs_mediumMaze', 'fn=dfs (natural order): cost %s, %s nodes.' % (n('dfs_mediumMaze', 'cost'), n('dfs_mediumMaze'))),
-        fig_nesw=fig('dfsNESW_mediumMaze', 'fn=dfsNESW (N-E-S-W): cost %s, %s nodes.' % (n('dfsNESW_mediumMaze', 'cost'), n('dfsNESW_mediumMaze'))),
+        fig_dfs=fig('dfs_mediumMaze', 'fn=dfs (mandatory N-E-S-W): cost %s, %s nodes.' % (n('dfs_mediumMaze', 'cost'), n('dfs_mediumMaze'))),
+        fig_nesw=fig('dfsNESW_mediumMaze', 'fn=dfsNESW alias: cost %s, %s nodes.' % (n('dfsNESW_mediumMaze', 'cost'), n('dfsNESW_mediumMaze'))),
         fig_ucsz=fig('ucs_mediumMaze_z', 'Substitute 1: mediumMaze, fn=ucs, -z .5.'),
         fig_stay=fig('ucs_stayEast', 'Substitute 2: StayEastSearchAgent, cost %s.' % n('ucs_stayEast', 'cost')),
         broken=html.escape('\n'.join('$ %s\n%s' % (b['command'], ' '.join(b['message'])) for b in BROKEN.values())),

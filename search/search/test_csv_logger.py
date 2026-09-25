@@ -107,6 +107,11 @@ class CsvLoggerTest(unittest.TestCase):
             run(GraphProblem(EDGES, 'S', 'G'))
         self.assertEqual(os.listdir(self.dir), [])
 
+    def test_logging_is_on_by_default_outside_pacman(self):
+        os.environ.pop('SEARCH_LOG', None)
+        search.breadthFirstSearch(GraphProblem(EDGES, 'S', 'G'))
+        self.assertTrue(glob.glob(os.path.join(self.dir, 'bfs_*.csv')))
+
     def test_helper_searches_with_visualize_false_are_not_logged(self):
         problem = GraphProblem(EDGES, 'S', 'G')
         problem.visualize = False

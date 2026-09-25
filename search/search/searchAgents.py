@@ -288,8 +288,10 @@ class CornersProblem(search.SearchProblem):
         # State = (position, tuple of visited corners).  The tuple is kept in
         # self.corners order so the same set of corners is always the same state
         # no matter which order they were reached in.
-        visited = tuple(c for c in self.corners if c == self.startingPosition)
-        return (self.startingPosition, visited)
+        initiallyVisitedCorners = tuple(
+            cornerPosition for cornerPosition in self.corners
+            if cornerPosition == self.startingPosition)
+        return (self.startingPosition, initiallyVisitedCorners)
 
     def isGoalState(self, state: Any):
         """
@@ -317,15 +319,19 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            position, visited = state
-            dx, dy = Actions.directionToVector(action)
-            nextx, nexty = int(position[0] + dx), int(position[1] + dy)
-            if self.walls[nextx][nexty]:
+            currentPosition, cornersVisitedSoFar = state
+            horizontalMovement, verticalMovement = Actions.directionToVector(action)
+            nextHorizontalPosition = int(currentPosition[0] + horizontalMovement)
+            nextVerticalPosition = int(currentPosition[1] + verticalMovement)
+            if self.walls[nextHorizontalPosition][nextVerticalPosition]:
                 continue
-            nextPosition = (nextx, nexty)
-            nextVisited = tuple(c for c in self.corners
-                                if c in visited or c == nextPosition)
-            successors.append(((nextPosition, nextVisited), action, 1))
+            successorPosition = (nextHorizontalPosition, nextVerticalPosition)
+            successorVisitedCorners = tuple(
+                cornerPosition for cornerPosition in self.corners
+                if (cornerPosition in cornersVisitedSoFar
+                    or cornerPosition == successorPosition))
+            successors.append(
+                ((successorPosition, successorVisitedCorners), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -360,22 +366,30 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    position, visited = state
-    remaining = [c for c in corners if c not in visited]
+    currentPosition, cornersVisitedSoFar = state
+    cornersStillUnvisited = [
+        cornerPosition for cornerPosition in corners
+        if cornerPosition not in cornersVisitedSoFar]
 
-    # Length of the shortest tour from `here` through every corner in `left`,
+    # Length of the shortest tour from the current position through every
+    # corner that is still unvisited,
     # using Manhattan distance and ignoring walls.  Walls can only make real
     # paths longer, so this never overestimates (admissible), and it is the
     # exact optimum of a relaxed problem, so it is also consistent.  At most
     # 4 corners -> at most 24 orderings.
-    def shortestTour(here, left):
-        if not left:
+    def shortestTour(currentTourPosition, cornersLeftToVisit):
+        if not cornersLeftToVisit:
             return 0
-        return min(util.manhattanDistance(here, c) +
-                   shortestTour(c, [o for o in left if o != c])
-                   for c in left)
+        return min(
+            util.manhattanDistance(currentTourPosition, nextCornerPosition)
+            + shortestTour(
+                nextCornerPosition,
+                [otherCornerPosition
+                 for otherCornerPosition in cornersLeftToVisit
+                 if otherCornerPosition != nextCornerPosition])
+            for nextCornerPosition in cornersLeftToVisit)
 
-    return shortestTour(position, remaining)
+    return shortestTour(currentPosition, cornersStillUnvisited)
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -468,40 +482,55 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    foodList = foodGrid.asList()
-    if not foodList:
+    remainingFoodCoordinates = foodGrid.asList()
+    if not remainingFoodCoordinates:
         return 0
 
     # Cache maze distances for the whole search: they only depend on the
     # (fixed) walls, so each pair is computed by mazeDistance at most once.
-    distCache = problem.heuristicInfo.setdefault('mazeDist', {})
-    def dist(a, b):
-        key = (a, b) if a <= b else (b, a)
-        if key not in distCache:
-            distCache[key] = mazeDistance(a, b, problem.startingGameState)
-        return distCache[key]
+    mazeDistanceCache = problem.heuristicInfo.setdefault('mazeDist', {})
+    def dist(firstPoint, secondPoint):
+        orderedPointPair = ((firstPoint, secondPoint)
+                            if firstPoint <= secondPoint
+                            else (secondPoint, firstPoint))
+        if orderedPointPair not in mazeDistanceCache:
+            mazeDistanceCache[orderedPointPair] = mazeDistance(
+                firstPoint, secondPoint, problem.startingGameState)
+        return mazeDistanceCache[orderedPointPair]
 
     # The MST over the remaining food depends only on which food is left, not
     # on where Pacman stands, so cache it per food set.
-    mstCache = problem.heuristicInfo.setdefault('mst', {})
-    remaining = frozenset(foodList)
-    if remaining not in mstCache:
+    minimumTreeCache = problem.heuristicInfo.setdefault('mst', {})
+    remainingFoodSet = frozenset(remainingFoodCoordinates)
+    if remainingFoodSet not in minimumTreeCache:
         # Prim's algorithm over maze distances
-        best = {f: dist(foodList[0], f) for f in foodList[1:]}
-        total = 0
-        while best:
-            nxt = min(best, key=best.get)
-            total += best.pop(nxt)
-            for f in best:
-                d = dist(nxt, f)
-                if d < best[f]:
-                    best[f] = d
-        mstCache[remaining] = total
+        cheapestConnectingCosts = {
+            foodCoordinate: dist(
+                remainingFoodCoordinates[0], foodCoordinate)
+            for foodCoordinate in remainingFoodCoordinates[1:]}
+        spanningTreeTotalCost = 0
+        while cheapestConnectingCosts:
+            closestUnconnectedFood = min(
+                cheapestConnectingCosts, key=cheapestConnectingCosts.get)
+            spanningTreeTotalCost += cheapestConnectingCosts.pop(
+                closestUnconnectedFood)
+            for foodCoordinate in cheapestConnectingCosts:
+                candidateConnectionDistance = dist(
+                    closestUnconnectedFood, foodCoordinate)
+                if (candidateConnectionDistance
+                        < cheapestConnectingCosts[foodCoordinate]):
+                    cheapestConnectingCosts[foodCoordinate] = (
+                        candidateConnectionDistance)
+        minimumTreeCache[remainingFoodSet] = spanningTreeTotalCost
 
     # Pacman must reach some dot first (>= nearest dot), then any walk that
     # visits every dot costs at least the MST weight, so the sum never
     # overestimates. True maze distances keep it consistent.
-    return min(dist(position, f) for f in foodList) + mstCache[remaining]
+    nearestRemainingFoodDistance = min(
+        dist(position, foodCoordinate)
+        for foodCoordinate in remainingFoodCoordinates)
+    return (nearestRemainingFoodDistance
+            + minimumTreeCache[remainingFoodSet])
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"

@@ -1,4 +1,4 @@
-"""Checks for the opt-in N->E->S->W ordering in search.py (AI-01).
+"""Checks for the mandatory N->E->S->W DFS ordering in search.py (AI-01).
 
 Run from anywhere: python search/search/test_dfs_order.py
 """
@@ -49,16 +49,10 @@ class DfsOrderTest(unittest.TestCase):
         search.dfsNESW(problem)
         self.assertEqual(problem.expanded, ['S', 'N', 'E', 'S2', 'W'])
 
-    def test_default_dfs_keeps_natural_order(self):
+    def test_default_dfs_uses_pdf_order(self):
         problem = StarProblem()
-        original = search.ENFORCE_NESW_DFS
-        search.ENFORCE_NESW_DFS = False
-        try:
-            search.dfs(problem)
-        finally:
-            search.ENFORCE_NESW_DFS = original
-        # natural order pushed N, S2, E, W -> LIFO pops W first
-        self.assertEqual(problem.expanded, ['S', 'W', 'E', 'S2', 'N'])
+        search.dfs(problem)
+        self.assertEqual(problem.expanded, ['S', 'N', 'E', 'S2', 'W'])
 
     def test_flag_true_makes_dfs_north_first(self):
         problem = StarProblem()

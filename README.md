@@ -9,7 +9,7 @@
 
 Five search algorithms, two multi-goal problems, an automatic CSV trace for every run, and a custom maze built to fool greedy search, all on the UC Berkeley Pacman framework.
 
-**Status:** all tickets AI-00 to AI-13 are done. `python autograder.py` scores **26/25** (q1–q8 at full marks; q7 earns bonus credit with 255 nodes against a top threshold of 7000).
+**Status:** implementation follows the PDF literally and leaves all protected code untouched. The supplied q1 path fixture expects the starter's N-S-E-W successor order, while the PDF mandates N-E-S-W for DFS; this mismatch is documented rather than hidden.
 
 ---
 
@@ -17,7 +17,7 @@ Five search algorithms, two multi-goal problems, an automatic CSV trace for ever
 
 | Task | Where | Notes |
 |:---|:---|:---|
-| **DFS** | `search.py` | LIFO `util.Stack`, explicit explored set. `fn=dfs` keeps the natural successor order the autograder expects; `fn=dfsNESW` applies the PDF's North-East-South-West order. |
+| **DFS** | `search.py` | LIFO `util.Stack`, explicit explored set. `fn=dfs` and `fn=dfsNESW` enforce the PDF's North-East-South-West order without changing `PositionSearchProblem`. |
 | **BFS** | `search.py` | FIFO `util.Queue`; a state is enqueued at most once, so paths are shortest on unit costs. |
 | **UCS** | `search.py` | `util.PriorityQueue` ordered by g(n); `update` lowers the priority of a state already on the fringe. |
 | **GBFS** | `search.py` | Ordered by h(n) only; `gbfs` / `greedyBestFirstSearch`; heuristic passed on the command line. |
@@ -29,7 +29,7 @@ Five search algorithms, two multi-goal problems, an automatic CSV trace for ever
 | **AnyFoodSearchProblem / ClosestDotSearchAgent** | `searchAgents.py` | Goal test is "standing on food"; BFS finds the nearest dot. |
 | **Custom maze** | `layouts/24i3025Search.lay` | Branches, dead ends and a serpentine decoy; GBFS returns 47 steps, A\* returns 37. |
 
-Every algorithm is written directly inside its own provided function. The one exception is `depthFirstSearch`, which delegates to `_depthFirstSearch` so the N-E-S-W option can be switched on.
+Every algorithm is written directly inside its own provided function. The one exception is `depthFirstSearch`, which delegates to `_depthFirstSearch` to enforce the mandatory N-E-S-W order.
 
 Only `search.py`, `searchAgents.py` and the new layout were edited. `pacman.py`, `game.py`, `util.py`, `layout.py`, `graphicsDisplay.py`, `graphicsUtils.py` and `textDisplay.py` are byte-identical to the starter code, the `SearchAgent`, `PositionSearchProblem` and `FoodSearchProblem` classes are unchanged, and all 7 `# DO NOT CHANGE` lines are intact.
 
@@ -41,8 +41,8 @@ Path cost and nodes expanded, straight from the run output and cross-checked aga
 
 | Run | Cost | Nodes |
 |:---|---:|---:|
-| DFS tinyMaze / mediumMaze / bigMaze | 10 / 130 / 210 | 15 / 146 / 390 |
-| DFS N-E-S-W mediumMaze | 244 | 267 |
+| DFS tinyMaze / mediumMaze / bigMaze | 8 / 244 / 210 | 15 / 267 / 519 |
+| DFS alias N-E-S-W mediumMaze | 244 | 267 |
 | BFS mediumMaze / bigMaze | 68 / 210 | 269 / 620 |
 | UCS mediumMaze | 68 | 269 |
 | GBFS bigMaze (Manhattan / Euclidean) | 210 / 210 | 466 / 471 |
@@ -52,7 +52,7 @@ Path cost and nodes expanded, straight from the run output and cross-checked aga
 | A\* trickySearch | 60 | 255 |
 | ClosestDot bigSearch | 350 | one BFS per dot |
 
-**The greedy trap** (`24i3025Search`): DFS 47 steps, BFS 37, UCS 37, **GBFS 47** (54 nodes), **A\* 37** (84 nodes). Greedy search expands fewer nodes but commits to a long serpentine that looks close to the goal in Manhattan distance; A\* adds the cost already paid and takes the shorter route.
+**The greedy trap** (`24i3025Search`): DFS 37 steps (97 nodes), BFS 37, UCS 37, **GBFS 47** (54 nodes), **A\* 37** (84 nodes). Greedy search expands fewer nodes but commits to a long serpentine that looks close to the goal in Manhattan distance; A\* adds the cost already paid and takes the shorter route.
 
 ---
 
@@ -64,7 +64,7 @@ Path cost and nodes expanded, straight from the run output and cross-checked aga
 │   ├── search.py                  # EDITED: DFS, BFS, UCS, GBFS, A*, CSV logger
 │   ├── searchAgents.py            # EDITED: corners, food heuristic, closest dot
 │   ├── layouts/24i3025Search.lay  # ADDED: custom maze
-│   ├── evidence/                  # ADDED: 22 CSV traces + screenshots/ (22 PNGs)
+│   ├── evidence/                  # ADDED: experiment/autograder CSV traces + 22 screenshots
 │   ├── README.txt                 # ADDED: submission README (specs, commands)
 │   ├── report.pdf                 # ADDED: 7-page report
 │   ├── pacman.py game.py util.py layout.py
@@ -110,11 +110,11 @@ Add `-q` to any command to run without a window.
 
 ### CSV traces
 
-Every run started through `pacman.py` writes `evidence/<algorithm>_<layout>[_<tag>]_<timestamp>.csv` with the columns
+Every task-level execution writes `evidence/<algorithm>_<layout>[_<tag>]_<timestamp>.csv` with the columns
 
 `iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f`
 
-One row per expanded state (plus the goal row). DFS, BFS and UCS log `h = 0`, `f = g` so every file has the same schema; GBFS logs `f = h`. Logging is off under the autograder. `SEARCH_LOG=0/1` forces it off/on, `SEARCH_LOG_DIR` redirects the folder and `SEARCH_LOG_TAG` adds a label to the file name. The `explored` column lists every state expanded so far, so large runs give large files (mediumCorners is about 6.6 MB).
+One row per expanded state (plus the goal row). DFS, BFS and UCS log `h = 0`, `f = g` so every file has the same schema; GBFS logs `f = h`. Logging is on for `pacman.py`, autograder, and imported task calls. `SEARCH_LOG=0` explicitly disables it, `SEARCH_LOG_DIR` redirects the folder, and `SEARCH_LOG_TAG` adds a label. Internal `visualize=False` helper searches remain suppressed so `mazeDistance` does not recursively flood the evidence directory.
 
 ### Regenerating the evidence
 
@@ -135,7 +135,7 @@ Handled without editing any forbidden file. Full detail is in `tickets.md` secti
 
 1. **CSV logging vs. forbidden files.** The logger lives in `search.py`, so no forbidden file changes.
 2. **GBFS has no stub and no autograder question.** `gbfs` / `greedyBestFirstSearch` was added to `search.py`; `SearchAgent` finds it with `getattr`. It is covered by our own tests instead.
-3. **N-E-S-W order.** `PositionSearchProblem.getSuccessors` (untouchable) returns N, S, E, W and the autograder expects that order for `fn=dfs`. The PDF order is available as `fn=dfsNESW`; `ENFORCE_NESW_DFS` in `search.py` flips the default. The PDF states the rule only under Task 1, so the other algorithms keep the natural order.
+3. **N-E-S-W order.** `PositionSearchProblem.getSuccessors` (untouchable) returns N, S, E, W, but Task 1 mandates N, E, S, W. `search.py` reorders DFS successors; both `fn=dfs` and `fn=dfsNESW` follow the PDF. The supplied q1 fixture assumes the conflicting natural order and is not edited.
 4. **Two UCS commands cannot run.** `mediumDenselyMaze` and `stayEastSearch` are not layouts. Substitutes: `-l mediumMaze ... fn=ucs -z .5` and `-l mediumMaze -p StayEastSearchAgent`.
 5. **Layout name.** Step 2 says `Search.lay`, Section 4 says `[YourID]Search.lay`; we use `24i3025Search.lay`. The goal sits at (1, 1) because `SearchAgent` uses that default goal.
 6. **CSV schema for uninformed search.** `h = 0`, `f = g` so all files share the same columns.
@@ -146,7 +146,7 @@ Handled without editing any forbidden file. Full detail is in `tickets.md` secti
 
 ## Submission package
 
-`python tools/make_zip.py` builds `SearchProject.zip` (kept out of git) with a single `SearchProject/` folder that matches the PDF's Section 5 layout: the starter code, the edited `search.py` and `searchAgents.py`, `layouts/` with the custom maze, `README.txt`, `report.pdf`, and `evidence/` with all CSVs and screenshots. Our own test files are left out. The script unzips the result into a temp folder and checks that no test files are inside, that the seven forbidden files match the starter commit byte for byte, and that the autograder still gives 26/25.
+`python tools/make_zip.py` builds `SearchProject.zip` (kept out of git) with a single `SearchProject/` folder that matches the PDF's Section 5 layout: the starter code, the edited `search.py` and `searchAgents.py`, `layouts/` with the custom maze, `README.txt`, `report.pdf`, and `evidence/` with all CSVs and screenshots. Our own test files are left out. The script unzips the result, checks exclusions and byte-identical protected files, and records the clean-extraction autograder result.
 
 ## Rubric (150 marks)
 

@@ -55,12 +55,9 @@ relevant numbered item here. If your TA/ma'am gives a different ruling before su
    successor list returned by `getSuccessors()` into N→E→S→W (a tiny `DIRECTION_PRIORITY` dict + `sorted(...)`
    or manual reorder) before pushing onto the fringe. This satisfies the literal PDF requirement while
    respecting the "don't touch this file" comment.
-   **Open question, not resolved by the TA thread:** the PDF states this ordering rule only under the *Task 1
-   (DFS)* heading. When asked, the TA didn't confirm it's DFS-only, and ma'am's reply ("follow the PDF, write
-   code where required") didn't settle it either. Ticket AI-01 applies N-E-S-W to DFS only, as literally
-   scoped by the PDF section it appears in, but implements the reorder as one shared helper function so it can
-   be trivially applied to BFS/UCS/GBFS/A* too if the TA later says it's global. **Confirm with the TA before
-   final submission** and note the decision + timestamp in the report.
+   **TA ruling received:** the teacher said to do exactly what the PDF specifies and not change any protected
+   code. Therefore `fn=dfs` enforces N-E-S-W inside `search.py`. The supplied q1 path fixture expects the
+   conflicting natural order; neither that fixture nor `PositionSearchProblem` is changed.
 
 4. **Two of the three UCS example commands reference things that don't exist.**
    PDF Task 3 gives:
@@ -221,7 +218,7 @@ once with zero open comments.
 - [ ] On unweighted mazes, returns a shortest path in step count — verify by comparing path length against
       `autograder.py`'s solution files (it checks this for you, but sanity-check manually on `mediumMaze` too).
 - [ ] Does **not** apply the N-E-S-W reorder from AI-01 unless AI-01's open question (Inconsistency #3) gets
-      resolved as "applies globally" — keep it toggleable via the shared helper, default off for BFS.
+      resolved as "applies globally" — the PDF places the rule under DFS, so BFS remains unchanged.
 
 ### Test Commands
 ```

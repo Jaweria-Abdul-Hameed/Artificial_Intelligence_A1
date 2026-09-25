@@ -24,14 +24,14 @@ WHAT WAS EDITED / ADDED
 
   Every algorithm is written directly inside its own provided function.  The
   one deliberate exception is depthFirstSearch, which delegates to the helper
-  _depthFirstSearch so the North-East-South-West option can be toggled.
+  _depthFirstSearch to enforce North-East-South-West without touching protected code.
 
 RUN COMMANDS  (run from this folder)
   Task 1  DFS
     python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs
     python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs
     python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs
-    python pacman.py -l mediumMaze -p SearchAgent -a fn=dfsNESW      (N-E-S-W order)
+    python pacman.py -l mediumMaze -p SearchAgent -a fn=dfsNESW      (descriptive alias)
   Task 2  BFS
     python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs
     python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs
@@ -63,14 +63,14 @@ RUN COMMANDS  (run from this folder)
     python autograder.py --no-graphics
 
 CSV TRACE LOGGING
-  Every run started through pacman.py writes evidence/<algorithm>_<layout>_<timestamp>.csv
+  Every task-level algorithm execution writes evidence/<algorithm>_<layout>_<timestamp>.csv
   with the columns:
     iteration, expanded_state, parent, action, generated_successors,
     frontier_before, frontier_after, explored, g, h, f
   One row per expanded state.  For DFS, BFS and UCS h = 0 and f = g so every
   file has the same schema; GBFS logs f = h (it orders by h alone).  Logging
-  is off under the autograder.  Set SEARCH_LOG=0 to switch it off, SEARCH_LOG=1
-  to force it on, SEARCH_LOG_DIR=<folder> to redirect the output, or
+  is on under pacman.py, the autograder, and imported task calls. Set
+  SEARCH_LOG=0 to switch it off, SEARCH_LOG_DIR=<folder> to redirect it, or
   SEARCH_LOG_TAG=<label> to insert a label into the file name.
   The explored column lists every state expanded so far, so a file grows with the
   square of the run length (mediumCorners is about 6.6 MB).  fn=dfsNESW logs as
@@ -84,9 +84,9 @@ NOTES ON PDF vs. STARTER-CODE DISCREPANCIES (all handled without editing any for
   2. There is no GBFS stub or autograder question in the starter code.  gbfs /
      greedyBestFirstSearch was added to search.py (SearchAgent finds it via getattr).
   3. PositionSearchProblem.getSuccessors (untouchable) returns N,S,E,W, but Task 1
-     asks for N,E,S,W.  The reorder happens inside search.py: fn=dfsNESW always
-     uses it; fn=dfs keeps the natural order the autograder expects
-     (ENFORCE_NESW_DFS in search.py flips the default).
+     asks for N,E,S,W. The reorder happens inside search.py for fn=dfs and
+     fn=dfsNESW. The starter q1 path fixture expects a different route; protected
+     code and test fixtures remain unchanged as directed by the teacher.
   4. Two UCS example commands reference layouts that do not exist
      (mediumDenselyMaze, stayEastSearch).  Substituted: "-l mediumMaze ... fn=ucs -z .5"
      and "-l mediumMaze -p StayEastSearchAgent".

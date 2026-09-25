@@ -49,8 +49,10 @@ def main():
         print('csv files:', sum(n.startswith(TOP + '/evidence/') and n.endswith('.csv') for n in names),
               '| screenshots:', sum(n.startswith(TOP + '/evidence/screenshots/') and n.endswith('.png') for n in names))
         for f in FORBIDDEN:
-            orig = subprocess.run(['git', 'show', '%s:search/search/%s' % (BASE, f)], cwd=ROOT,
-                                  capture_output=True).stdout
+            orig = subprocess.run(
+                ['git', '-c', 'safe.directory=' + ROOT.replace('\\', '/'), 'show',
+                 '%s:search/search/%s' % (BASE, f)],
+                cwd=ROOT, capture_output=True, check=True).stdout
             same = orig == open(os.path.join(proj, f), 'rb').read()
             print('%-18s byte-identical to starter: %s' % (f, same))
             assert same

@@ -1,3 +1,17 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# IDE and tool configs
+.idea/
+.claude/
+.codex/
+.mcp.json
+
+# Local archive files
+*.zip
+
+# Audit sandbox and temporary directories
+audit_sandbox/
+fresh_audit_temp/
+

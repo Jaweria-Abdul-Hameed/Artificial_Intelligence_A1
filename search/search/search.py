@@ -69,10 +69,9 @@ def tinyMazeSearch(problem):
 # logging off with a warning).
 #
 # Rows go to evidence/<algorithm>_<layout>_<timestamp>.csv (next to search.py).
-# Logging is ON when the program is started through pacman.py and OFF under the
-# autograder / when imported (so tests don't litter evidence/).  Set the
-# environment variable SEARCH_LOG=1 to force it on or SEARCH_LOG=0 to force it
-# off, SEARCH_LOG_DIR to redirect the output folder and SEARCH_LOG_TAG to add a
+# Logging is ON for every task-level algorithm execution, including the
+# autograder and imported calls.  Set SEARCH_LOG=0 to switch it off,
+# SEARCH_LOG_DIR to redirect the output folder and SEARCH_LOG_TAG to add a
 # label to the file name (evidence/<algorithm>_<layout>_<tag>_<timestamp>.csv).  Internal helper
 # searches (mazeDistance inside foodHeuristic, which builds its problem with
 # visualize=False) are never logged.  ClosestDotSearchAgent runs one BFS per
@@ -82,13 +81,9 @@ CSV_COLUMNS = ['iteration', 'expanded_state', 'parent', 'action',
                'explored', 'g', 'h', 'f']
 
 def _loggingEnabled(problem):
-    import os, sys
-    flag = os.environ.get('SEARCH_LOG')
-    if flag is not None:
-        on = flag == '1'
-    else:
-        on = os.path.basename(sys.argv[0]) == 'pacman.py'
-    return on and getattr(problem, 'visualize', True)
+    import os
+    return (os.environ.get('SEARCH_LOG', '1') != '0'
+            and getattr(problem, 'visualize', True))
 
 def _layoutName():
     """Layout name from the command line (-l NAME, -lNAME, --layout NAME/=NAME),
@@ -224,15 +219,12 @@ class SearchLogger:
 
 
 # --- Successor ordering (Inconsistency #3) ----------------------------------
-# The PDF wants North -> East -> South -> West expansion, but
-# PositionSearchProblem.getSuccessors (untouchable) yields N, S, E, W and the
-# autograder's pacman_1 expects that natural order.  So the reorder lives here,
-# is opt-in, and is off by default.
-#   * dfs / depthFirstSearch : natural order unless ENFORCE_NESW_DFS is True
-#   * dfsNESW                : always N->E->S->W (use for the PDF demo)
-# To revert/flip the default on demand, change ENFORCE_NESW_DFS only.
+# The PDF requires North -> East -> South -> West expansion.  The untouchable
+# PositionSearchProblem.getSuccessors yields N, S, E, W, so DFS reorders the
+# returned list here and reverses it before pushing onto the LIFO stack.
+# dfsNESW remains as a descriptive alias for demonstrations.
 # No other algorithm uses reorderSuccessors unless a ticket explicitly calls it.
-ENFORCE_NESW_DFS = False
+ENFORCE_NESW_DFS = True
 def reorderSuccessors(successors):
     """Sort successors into N->E->S->W; non-direction actions go last and
     keep their relative order (stable sort)."""
@@ -241,34 +233,39 @@ def reorderSuccessors(successors):
             Directions.SOUTH: 2, Directions.WEST: 3}
     return sorted(successors, key=lambda s: rank.get(s[1], len(rank)))
 
-def _depthFirstSearch(problem, ordered):
-    fringe = util.Stack()
-    fringe.push((problem.getStartState(), []))
-    explored = set()
-    log = SearchLogger('dfsNESW' if ordered else 'dfs', problem)
+def _depthFirstSearch(problem, ordered, algorithm='dfs'):
+    frontierStack = util.Stack()
+    frontierStack.push((problem.getStartState(), []))
+    statesAlreadyExplored = set()
+    executionTraceLogger = SearchLogger(algorithm, problem)
 
-    while not fringe.isEmpty():
-        before = log.snapshot(fringe)
-        state, actions = fringe.pop()
-        if state in explored:
+    while not frontierStack.isEmpty():
+        frontierBeforeRemoval = executionTraceLogger.snapshot(frontierStack)
+        currentSearchState, pathActionsSoFar = frontierStack.pop()
+        if currentSearchState in statesAlreadyExplored:
             continue
-        if problem.isGoalState(state):
-            log.expand(state, [], before, fringe)
-            log.finish()
-            return actions
-        explored.add(state)
-        successors = problem.getSuccessors(state)
+        if problem.isGoalState(currentSearchState):
+            executionTraceLogger.expand(
+                currentSearchState, [], frontierBeforeRemoval, frontierStack)
+            executionTraceLogger.finish()
+            return pathActionsSoFar
+        statesAlreadyExplored.add(currentSearchState)
+        successorTriples = problem.getSuccessors(currentSearchState)
         if ordered:
             # Stack is LIFO: push in reverse so North is popped/expanded first.
-            successors = reorderSuccessors(successors)[::-1]
-        generated = []
-        for successor, action, stepCost in successors:
-            if successor not in explored:
-                fringe.push((successor, actions + [action]))
-                generated.append((successor, action, stepCost))
-        log.expand(state, generated, before, fringe)
+            successorTriples = reorderSuccessors(successorTriples)[::-1]
+        generatedSuccessorTriples = []
+        for successorState, successorAction, successorStepCost in successorTriples:
+            if successorState not in statesAlreadyExplored:
+                frontierStack.push(
+                    (successorState, pathActionsSoFar + [successorAction]))
+                generatedSuccessorTriples.append(
+                    (successorState, successorAction, successorStepCost))
+        executionTraceLogger.expand(
+            currentSearchState, generatedSuccessorTriples,
+            frontierBeforeRemoval, frontierStack)
 
-    log.finish()
+    executionTraceLogger.finish()
     return []
 
 def depthFirstSearch(problem: SearchProblem):
@@ -289,67 +286,81 @@ def depthFirstSearch(problem: SearchProblem):
 
 def depthFirstSearchNESW(problem: SearchProblem):
     """DFS with the PDF's North -> East -> South -> West expansion order."""
-    return _depthFirstSearch(problem, True)
+    return _depthFirstSearch(problem, True, 'dfsNESW')
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
-    start = problem.getStartState()
-    fringe = util.Queue()
-    fringe.push((start, []))
+    initialSearchState = problem.getStartState()
+    frontierQueue = util.Queue()
+    frontierQueue.push((initialSearchState, []))
     # Every state that is in the frontier or already expanded.  Checked before
     # pushing so a state is enqueued at most once (keeps BFS optimal).
-    seen = {start}
-    log = SearchLogger('bfs', problem)
+    statesAlreadyDiscovered = {initialSearchState}
+    executionTraceLogger = SearchLogger('bfs', problem)
 
-    while not fringe.isEmpty():
-        before = log.snapshot(fringe)
-        state, actions = fringe.pop()
-        if problem.isGoalState(state):
-            log.expand(state, [], before, fringe)
-            log.finish()
-            return actions
-        generated = []
-        for successor, action, stepCost in problem.getSuccessors(state):
-            if successor not in seen:
-                seen.add(successor)
-                fringe.push((successor, actions + [action]))
-                generated.append((successor, action, stepCost))
-        log.expand(state, generated, before, fringe)
+    while not frontierQueue.isEmpty():
+        frontierBeforeRemoval = executionTraceLogger.snapshot(frontierQueue)
+        currentSearchState, pathActionsSoFar = frontierQueue.pop()
+        if problem.isGoalState(currentSearchState):
+            executionTraceLogger.expand(
+                currentSearchState, [], frontierBeforeRemoval, frontierQueue)
+            executionTraceLogger.finish()
+            return pathActionsSoFar
+        generatedSuccessorTriples = []
+        for successorState, successorAction, successorStepCost in problem.getSuccessors(currentSearchState):
+            if successorState not in statesAlreadyDiscovered:
+                statesAlreadyDiscovered.add(successorState)
+                frontierQueue.push(
+                    (successorState, pathActionsSoFar + [successorAction]))
+                generatedSuccessorTriples.append(
+                    (successorState, successorAction, successorStepCost))
+        executionTraceLogger.expand(
+            currentSearchState, generatedSuccessorTriples,
+            frontierBeforeRemoval, frontierQueue)
 
-    log.finish()
+    executionTraceLogger.finish()
     return []
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
-    start = problem.getStartState()
+    initialSearchState = problem.getStartState()
     # The queue item is the bare state so PriorityQueue.update can match it and
     # lower its priority; g(n) and the path to each state live in dicts.
-    fringe = util.PriorityQueue()
-    fringe.push(start, 0)
-    cost_so_far = {start: 0}
-    paths = {start: []}
-    explored = set()
-    log = SearchLogger('ucs', problem)
+    costPriorityFrontier = util.PriorityQueue()
+    costPriorityFrontier.push(initialSearchState, 0)
+    cheapestCostFound = {initialSearchState: 0}
+    actionPathsByState = {initialSearchState: []}
+    statesWithFinalCost = set()
+    executionTraceLogger = SearchLogger('ucs', problem)
 
-    while not fringe.isEmpty():
-        before = log.snapshot(fringe)
-        state = fringe.pop()
-        if problem.isGoalState(state):
-            log.expand(state, [], before, fringe)
-            log.finish()
-            return paths[state]
-        explored.add(state)
-        generated = []
-        for successor, action, stepCost in problem.getSuccessors(state):
-            newCost = cost_so_far[state] + stepCost
-            if successor not in explored and newCost < cost_so_far.get(successor, float('inf')):
-                cost_so_far[successor] = newCost
-                paths[successor] = paths[state] + [action]
-                fringe.update(successor, newCost)
-                generated.append((successor, action, stepCost))
-        log.expand(state, generated, before, fringe)
+    while not costPriorityFrontier.isEmpty():
+        frontierBeforeRemoval = executionTraceLogger.snapshot(costPriorityFrontier)
+        currentSearchState = costPriorityFrontier.pop()
+        if problem.isGoalState(currentSearchState):
+            executionTraceLogger.expand(
+                currentSearchState, [], frontierBeforeRemoval,
+                costPriorityFrontier)
+            executionTraceLogger.finish()
+            return actionPathsByState[currentSearchState]
+        statesWithFinalCost.add(currentSearchState)
+        generatedSuccessorTriples = []
+        for successorState, successorAction, successorStepCost in problem.getSuccessors(currentSearchState):
+            candidatePathCost = (cheapestCostFound[currentSearchState]
+                                 + successorStepCost)
+            if (successorState not in statesWithFinalCost
+                    and candidatePathCost < cheapestCostFound.get(
+                        successorState, float('inf'))):
+                cheapestCostFound[successorState] = candidatePathCost
+                actionPathsByState[successorState] = (
+                    actionPathsByState[currentSearchState] + [successorAction])
+                costPriorityFrontier.update(successorState, candidatePathCost)
+                generatedSuccessorTriples.append(
+                    (successorState, successorAction, successorStepCost))
+        executionTraceLogger.expand(
+            currentSearchState, generatedSuccessorTriples,
+            frontierBeforeRemoval, costPriorityFrontier)
 
-    log.finish()
+    executionTraceLogger.finish()
     return []
 
 def nullHeuristic(state, problem=None):
@@ -361,73 +372,101 @@ def nullHeuristic(state, problem=None):
 
 def greedyBestFirstSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that looks closest to the goal (lowest h) first."""
-    start = problem.getStartState()
+    initialSearchState = problem.getStartState()
     # Priority is h(n) alone, so a state's priority never changes: the first
     # path that reaches it is kept and it is never re-queued (no update needed).
-    fringe = util.PriorityQueue()
-    hvals = {start: heuristic(start, problem)}   # h(n), also reused by the CSV logger
-    fringe.push(start, hvals[start])
-    paths = {start: []}
-    seen = {start}
-    log = SearchLogger('gbfs', problem)
+    heuristicPriorityFrontier = util.PriorityQueue()
+    heuristicValuesByState = {
+        initialSearchState: heuristic(initialSearchState, problem)}
+    heuristicPriorityFrontier.push(
+        initialSearchState, heuristicValuesByState[initialSearchState])
+    actionPathsByState = {initialSearchState: []}
+    statesAlreadyDiscovered = {initialSearchState}
+    executionTraceLogger = SearchLogger('gbfs', problem)
 
-    while not fringe.isEmpty():
-        before = log.snapshot(fringe)
-        state = fringe.pop()
+    while not heuristicPriorityFrontier.isEmpty():
+        frontierBeforeRemoval = executionTraceLogger.snapshot(
+            heuristicPriorityFrontier)
+        currentSearchState = heuristicPriorityFrontier.pop()
         # GBFS orders by h alone, so f(n) is logged as h(n).
-        h = hvals[state]
-        if problem.isGoalState(state):
-            log.expand(state, [], before, fringe, h, h)
-            log.finish()
-            return paths[state]
-        generated = []
-        for successor, action, stepCost in problem.getSuccessors(state):
-            if successor not in seen:
-                seen.add(successor)
-                paths[successor] = paths[state] + [action]
-                hvals[successor] = heuristic(successor, problem)
-                fringe.push(successor, hvals[successor])
-                generated.append((successor, action, stepCost))
-        log.expand(state, generated, before, fringe, h, h)
+        currentHeuristicValue = heuristicValuesByState[currentSearchState]
+        if problem.isGoalState(currentSearchState):
+            executionTraceLogger.expand(
+                currentSearchState, [], frontierBeforeRemoval,
+                heuristicPriorityFrontier, currentHeuristicValue,
+                currentHeuristicValue)
+            executionTraceLogger.finish()
+            return actionPathsByState[currentSearchState]
+        generatedSuccessorTriples = []
+        for successorState, successorAction, successorStepCost in problem.getSuccessors(currentSearchState):
+            if successorState not in statesAlreadyDiscovered:
+                statesAlreadyDiscovered.add(successorState)
+                actionPathsByState[successorState] = (
+                    actionPathsByState[currentSearchState] + [successorAction])
+                heuristicValuesByState[successorState] = heuristic(
+                    successorState, problem)
+                heuristicPriorityFrontier.push(
+                    successorState, heuristicValuesByState[successorState])
+                generatedSuccessorTriples.append(
+                    (successorState, successorAction, successorStepCost))
+        executionTraceLogger.expand(
+            currentSearchState, generatedSuccessorTriples,
+            frontierBeforeRemoval, heuristicPriorityFrontier,
+            currentHeuristicValue, currentHeuristicValue)
 
-    log.finish()
+    executionTraceLogger.finish()
     return []
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    start = problem.getStartState()
+    initialSearchState = problem.getStartState()
     # Same shape as uniformCostSearch, but ordered by f(n) = g(n) + h(n).  The
     # item is the bare state so PriorityQueue.update can lower its priority.
     # No closed set: a state is re-opened whenever a cheaper path to it turns
     # up, which keeps A* optimal even for admissible-but-inconsistent h.
-    fringe = util.PriorityQueue()
-    hvals = {start: heuristic(start, problem)}   # h(n), also reused by the CSV logger
-    fringe.push(start, hvals[start])
-    cost_so_far = {start: 0}
-    paths = {start: []}
-    log = SearchLogger('astar', problem)
+    evaluationPriorityFrontier = util.PriorityQueue()
+    heuristicValuesByState = {
+        initialSearchState: heuristic(initialSearchState, problem)}
+    evaluationPriorityFrontier.push(
+        initialSearchState, heuristicValuesByState[initialSearchState])
+    cheapestCostFound = {initialSearchState: 0}
+    actionPathsByState = {initialSearchState: []}
+    executionTraceLogger = SearchLogger('astar', problem)
 
-    while not fringe.isEmpty():
-        before = log.snapshot(fringe)
-        state = fringe.pop()
-        h = hvals[state]
-        if problem.isGoalState(state):
-            log.expand(state, [], before, fringe, h)
-            log.finish()
-            return paths[state]
-        generated = []
-        for successor, action, stepCost in problem.getSuccessors(state):
-            newCost = cost_so_far[state] + stepCost
-            if newCost < cost_so_far.get(successor, float('inf')):
-                cost_so_far[successor] = newCost
-                paths[successor] = paths[state] + [action]
-                if successor not in hvals:
-                    hvals[successor] = heuristic(successor, problem)
-                fringe.update(successor, newCost + hvals[successor])
-                generated.append((successor, action, stepCost))
-        log.expand(state, generated, before, fringe, h)
+    while not evaluationPriorityFrontier.isEmpty():
+        frontierBeforeRemoval = executionTraceLogger.snapshot(
+            evaluationPriorityFrontier)
+        currentSearchState = evaluationPriorityFrontier.pop()
+        currentHeuristicValue = heuristicValuesByState[currentSearchState]
+        if problem.isGoalState(currentSearchState):
+            executionTraceLogger.expand(
+                currentSearchState, [], frontierBeforeRemoval,
+                evaluationPriorityFrontier, currentHeuristicValue)
+            executionTraceLogger.finish()
+            return actionPathsByState[currentSearchState]
+        generatedSuccessorTriples = []
+        for successorState, successorAction, successorStepCost in problem.getSuccessors(currentSearchState):
+            candidatePathCost = (cheapestCostFound[currentSearchState]
+                                 + successorStepCost)
+            if candidatePathCost < cheapestCostFound.get(
+                    successorState, float('inf')):
+                cheapestCostFound[successorState] = candidatePathCost
+                actionPathsByState[successorState] = (
+                    actionPathsByState[currentSearchState] + [successorAction])
+                if successorState not in heuristicValuesByState:
+                    heuristicValuesByState[successorState] = heuristic(
+                        successorState, problem)
+                evaluationPriorityFrontier.update(
+                    successorState,
+                    candidatePathCost + heuristicValuesByState[successorState])
+                generatedSuccessorTriples.append(
+                    (successorState, successorAction, successorStepCost))
+        executionTraceLogger.expand(
+            currentSearchState, generatedSuccessorTriples,
+            frontierBeforeRemoval, evaluationPriorityFrontier,
+            currentHeuristicValue)
 
-    log.finish()
+    executionTraceLogger.finish()
     return []
 
 
