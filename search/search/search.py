@@ -122,6 +122,9 @@ class SearchLogger:
 
     def __init__(self, algorithm, problem):
         self.enabled = _loggingEnabled(problem)
+        self.append = False
+        self.file = None
+        self.writer = None
         if not self.enabled:
             return
         import os
@@ -135,8 +138,6 @@ class SearchLogger:
         self.key = (algorithm, _layoutName())
         if self.append:
             self.iteration = SearchLogger._appendCount.get(self.key, 0)
-        self.file = None
-        self.writer = None
 
     def snapshot(self, fringe):
         """Text snapshot of a util.Stack / Queue / PriorityQueue, next state to be
@@ -207,8 +208,6 @@ class SearchLogger:
 
     def finish(self):
         """Close the CSV (call at every return point of a search)."""
-        if not hasattr(self, 'file'):
-            return
         if self.append:
             SearchLogger._appendCount[self.key] = self.iteration
         if self.file is None:

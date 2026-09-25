@@ -34,7 +34,7 @@ def finish(self):
     time.sleep(0.6)
     x, y = root.winfo_rootx(), root.winfo_rooty()
     w, h = root.winfo_width(), root.winfo_height()
-    ImageGrab.grab(bbox=(x, y, x + w, y + h + 45)).save(out)
+    ImageGrab.grab(bbox=(x, y, x + w, y + h)).save(out)
     _finish(self)
 
 

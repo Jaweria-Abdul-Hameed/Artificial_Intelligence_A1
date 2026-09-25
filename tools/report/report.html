@@ -1,0 +1,338 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Teaching Pacman to search</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap"><style>
+:root{--ink:#0e1330;--muted:#5a6083;--rule:#d9dcee;--tint:#eef0ff;--blue:#2437e8;--yellow:#ffc800;
+--ok:#12805c;--bad:#c2321f;--paper:#ffffff}
+@page{size:A4;margin:15mm 15mm 16mm}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:9.6pt/1.5 'IBM Plex Sans',Segoe UI,Arial,sans-serif}
+h1,h2,h3{font-family:'Bricolage Grotesque','IBM Plex Sans',Segoe UI,sans-serif;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:17pt;margin:0 0 3mm;padding-bottom:2mm;border-bottom:2px solid var(--ink)}
+h3{font-size:11.5pt;margin:5mm 0 1.5mm}
+p{margin:0 0 2.6mm}
+code,.mono{font-family:'JetBrains Mono',Consolas,monospace;font-size:8.4pt}
+.page{break-after:page;min-height:250mm}
+.page:last-child{break-after:auto}
+.cover{background:var(--ink);color:#fff;margin:-15mm -15mm 0;padding:22mm 15mm 14mm;position:relative;overflow:hidden}
+.cover h1{font-size:34pt;line-height:1.05;max-width:150mm}
+.cover .kicker{font:600 8.5pt 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);margin-bottom:6mm}
+.cover .meta{margin-top:8mm;color:#c9cdf0;font-size:9.5pt}
+.dots{position:absolute;right:14mm;top:20mm;width:38mm;height:38mm;border-radius:50%;background:var(--yellow);
+ clip-path:polygon(50% 50%,100% 22%,100% 0,0 0,0 100%,100% 100%,100% 78%)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin:7mm 0 5mm}
+.stat{background:var(--tint);border-radius:2mm;padding:3mm 3.5mm}
+.stat b{display:block;font:700 19pt 'Bricolage Grotesque',sans-serif;color:var(--blue)}
+.stat span{font-size:8pt;color:var(--muted)}
+table{border-collapse:collapse;width:100%;margin:2mm 0 4mm;font-size:8.8pt}
+th{font:600 7.8pt 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;text-align:left;color:var(--muted);
+ border-bottom:1.5px solid var(--ink);padding:1.5mm 2mm}
+td{padding:1.5mm 2mm;border-bottom:1px solid var(--rule);vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace;font-size:8.4pt}
+tr.hl td{background:#fff7d6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+figure{margin:0 0 3mm}
+figure img{width:100%;display:block;border:1px solid var(--rule);border-radius:1.5mm;background:#000}
+figcaption{font-size:8pt;color:var(--muted);margin-top:1.2mm}
+.callout{border-left:3px solid var(--yellow);background:#fffbe6;padding:2.5mm 3.5mm;margin:3mm 0;border-radius:0 1.5mm 1.5mm 0}
+.proof{background:var(--tint);border-radius:2mm;padding:3mm 4mm;margin:2mm 0 3mm}
+.proof b.t{font:600 8pt 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--blue)}
+.chart{width:100%;height:auto;margin:1mm 0 3mm}
+.chart .cl{font:8.4px 'IBM Plex Sans',sans-serif;fill:var(--ink)}
+.chart .cv{font:600 8.4px 'JetBrains Mono',monospace;fill:var(--muted)}
+.pill{display:inline-block;padding:.2mm 2mm;border-radius:5mm;font:600 7.6pt 'JetBrains Mono',monospace}
+.pill.ok{background:#dcf3ea;color:var(--ok)}.pill.bad{background:#fbe1dc;color:var(--bad)}
+ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
+.csv{font:7.2pt/1.35 'JetBrains Mono',monospace;background:#0e1330;color:#dfe2ff;padding:3mm;border-radius:2mm;white-space:pre-wrap;word-break:break-all}
+</style></head><body>
+<section class="page">
+ <div class="cover">
+  <div class="dots"></div>
+  <div class="kicker">AI2002 &middot; Assignment 01 &middot; Search</div>
+  <h1>Teaching Pacman to search</h1>
+  <div class="meta">Five search algorithms, two multi-goal problems, a CSV trace for every run and one deliberately deceptive maze.<br>
+  Jaweria Abdul Hameed (24i-3025) &middot; 24i-3135</div>
+ </div>
+ <div class="stats">
+  <div class="stat"><b>26/25</b><span>autograder points, q1&ndash;q8 all passing</span></div>
+  <div class="stat"><b>255</b><span>nodes expanded by A* on trickySearch (top threshold: 7000)</span></div>
+  <div class="stat"><b>47 vs 37</b><span>path length, GBFS vs A* on the custom maze</span></div>
+  <div class="stat"><b>22</b><span>CSV traces in evidence/</span></div>
+ </div>
+ <h3>What is in this report</h3>
+ <ul>
+  <li><b>Section 1</b> describes how each algorithm is built and what it costs in time and space.</li>
+  <li><b>Section 2</b> defines the state spaces for CornersProblem and FoodSearchProblem.</li>
+  <li><b>Section 3</b> proves that cornersHeuristic and foodHeuristic are admissible and consistent.</li>
+  <li><b>Section 4</b> compares all algorithms empirically. Every number comes from the CSV traces or the run output.</li>
+  <li><b>Section 5</b> analyses the custom maze and why greedy search falls for it.</li>
+  <li><b>Appendix</b> documents the two places where the PDF and the starter code disagree.</li>
+ </ul>
+ <h3>Design rules followed</h3>
+ <p>Only <code>search.py</code>, <code>searchAgents.py</code> and the new layout were edited. Every algorithm is written
+ inside its own provided function; the single exception is <code>depthFirstSearch</code>, which calls the helper
+ <code>_depthFirstSearch</code> so the North-East-South-West order can be switched on without touching
+ <code>PositionSearchProblem</code>. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
+ <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state with the columns
+ <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
+ The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
+ GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.</div>
+ <div class="csv">evidence/astar_24i3025Search_20260925_112044.csv
+iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
+1,(23, 6),,,[(23, 7) via North, (22, 6) via West],[(23, 6):27],[(22, 6):27, (23, 7):29],[],0,27,27
+2,(22, 6),(23, 6),West,[(21, 6) via West],[(22, 6):27, (23, 7):29],[(21, 6):27, (23, 7):29],[(23, 6)],1,26,27
+3,(21, 6),(22, 6),West,[(20, 6) via West],[(21, 6):27, (23, 7):29],[(20, 6):27, (23, 7):29],[(23, 6), (22, 6)],2,25,27</div>
+</section>
+
+<section class="page">
+ <h2>1 &middot; Algorithms and complexity</h2>
+ <p>All five searches are graph searches: a state is never expanded twice unless A* finds a strictly cheaper path to it.
+ Notation: <i>b</i> branching factor, <i>d</i> depth of the shallowest goal, <i>m</i> maximum depth, <i>C*</i> optimal cost,
+ <i>&epsilon;</i> smallest step cost, <i>|S|</i> number of reachable states (free cells in a maze).</p>
+ <table>
+  <tr><th>Algorithm</th><th>Fringe (util.py)</th><th>Order by</th><th>Time</th><th>Space</th><th>Complete</th><th>Optimal</th></tr>
+  <tr><td>DFS</td><td>Stack (LIFO)</td><td>most recent</td><td class="num">O(b<sup>m</sup>)</td><td class="num">O(min(|S|, b<sup>m</sup>))</td><td>yes (finite, explored set)</td><td><span class="pill bad">no</span></td></tr>
+  <tr><td>BFS</td><td>Queue (FIFO)</td><td>depth</td><td class="num">O(b<sup>d</sup>)</td><td class="num">O(b<sup>d</sup>)</td><td>yes</td><td><span class="pill ok">unit costs</span></td></tr>
+  <tr><td>UCS</td><td>PriorityQueue</td><td>g(n)</td><td class="num">O(b<sup>1+&lfloor;C*/&epsilon;&rfloor;</sup>)</td><td class="num">O(b<sup>1+&lfloor;C*/&epsilon;&rfloor;</sup>)</td><td>yes</td><td><span class="pill ok">yes</span></td></tr>
+  <tr><td>GBFS</td><td>PriorityQueue</td><td>h(n)</td><td class="num">O(b<sup>m</sup>)</td><td class="num">O(b<sup>m</sup>)</td><td>yes (finite, seen set)</td><td><span class="pill bad">no</span></td></tr>
+  <tr><td>A*</td><td>PriorityQueue</td><td>g(n) + h(n)</td><td class="num">O(b<sup>d</sup>) good h</td><td class="num">O(b<sup>d</sup>)</td><td>yes</td><td><span class="pill ok">h admissible</span></td></tr>
+ </table>
+ <p>In a grid maze every bound is also capped by the number of cells: with a binary heap each expansion costs
+ O(log |S|), so UCS and A* run in O(|E| log |S|), and DFS and BFS in O(|S|). Each fringe entry stores its action list, so a
+ run also pays O(|S| &middot; L) memory for paths of length L. That is the price of keeping every algorithm inside one small
+ function and it is negligible at maze sizes.</p>
+ <h3>Implementation notes</h3>
+ <ul>
+  <li><b>DFS</b> marks a state explored when it is popped, and skips stale duplicates left on the stack. The N&ndash;E&ndash;S&ndash;W option pushes successors in reverse so North pops first.</li>
+  <li><b>BFS</b> checks a <i>seen</i> set before pushing, so a state enters the queue once. That keeps the first path found the shortest.</li>
+  <li><b>UCS</b> queues the bare state and calls <code>PriorityQueue.update</code>, so a cheaper path to a state already in the fringe lowers its priority instead of adding a duplicate. Costs and paths live in dictionaries.</li>
+  <li><b>GBFS</b> orders by <code>h</code> only. A state's priority never changes, so it is queued once. The heuristic is passed as <code>heuristic=name</code> on the command line through the unchanged <code>SearchAgent</code>.</li>
+  <li><b>A*</b> uses <code>f = g + h</code> and re-opens a state whenever a cheaper <code>g</code> appears, which keeps it optimal even for an admissible heuristic that is not consistent.</li>
+ </ul>
+ <svg class="chart" viewBox="0 0 640 138" role="img">
+<text x="180" y="20" class="cl" text-anchor="end">DFS</text>
+<rect x="190" y="7" width="245.3" height="16" rx="3" fill="var(--blue)"/>
+<text x="441.3" y="20" class="cv">390</text>
+<text x="180" y="46" class="cl" text-anchor="end">BFS</text>
+<rect x="190" y="33" width="390.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="586.0" y="46" class="cv">620</text>
+<text x="180" y="72" class="cl" text-anchor="end">GBFS (Manhattan)</text>
+<rect x="190" y="59" width="293.1" height="16" rx="3" fill="var(--blue)"/>
+<text x="489.1" y="72" class="cv">466</text>
+<text x="180" y="98" class="cl" text-anchor="end">A* (null h)</text>
+<rect x="190" y="85" width="390.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="586.0" y="98" class="cv">620</text>
+<text x="180" y="124" class="cl" text-anchor="end">A* (Manhattan)</text>
+<rect x="190" y="111" width="345.3" height="16" rx="3" fill="var(--yellow)"/>
+<text x="541.3" y="124" class="cv">549</text>
+</svg>
+ <p style="font-size:8pt;color:var(--muted)">Nodes expanded on bigMaze (path cost 210 for every optimal algorithm). DFS also returns cost 210 here by luck of the maze, not by guarantee.</p>
+</section>
+
+<section class="page">
+ <h2>2 &middot; State spaces</h2>
+ <h3>CornersProblem</h3>
+ <p>A state is <code>(position, visitedCorners)</code>. <code>position</code> is Pacman's (x, y). <code>visitedCorners</code> is a tuple of the
+ corners reached so far, always kept in the fixed order of <code>self.corners</code>. Two paths that reach the same corners in a different
+ order therefore produce the <i>same</i> state, which is what lets graph search merge them.</p>
+ <ul>
+  <li><b>Start:</b> the starting position, with its own cell counted if it is a corner.</li>
+  <li><b>Goal:</b> all four corners visited.</li>
+  <li><b>Successors:</b> the four moves that do not hit a wall, each with cost 1. Stepping onto a corner adds it to the tuple.</li>
+  <li><b>Size:</b> at most |free cells| &times; 2<sup>4</sup> = 16&middot;|free cells| states.</li>
+ </ul>
+ <h3>FoodSearchProblem</h3>
+ <p>A state is <code>(position, foodGrid)</code>, where <code>foodGrid</code> is a Grid of booleans. The goal is an empty grid. The class ships
+ fully implemented and is not edited. The state space is up to |free cells| &times; 2<sup>|dots|</sup>, which is why an informed heuristic matters:
+ blind search on trickySearch is hopeless, while A* with our heuristic expands only 255 nodes.</p>
+ <h3>AnyFoodSearchProblem and ClosestDotSearchAgent</h3>
+ <p>The goal test is one line: <code>self.food[x][y]</code>. <code>findPathToClosestDot</code> runs BFS, so it returns the nearest dot, and the agent repeats this
+ until the board is empty. It is greedy across dots: on bigSearch it collects everything with a path of 350 steps. It does not promise the shortest
+ tour, only the shortest hop each time.</p>
+ <div class="two">
+  <figure class=""><img src="../../search/search/evidence/screenshots/astar_trickySearch.png"><figcaption>A* with foodHeuristic on trickySearch: 255 nodes, cost 60.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/astar_mediumCorners.png"><figcaption>A* with cornersHeuristic on mediumCorners: 741 nodes, cost 106.</figcaption></figure>
+ </div>
+</section>
+
+<section class="page">
+ <h2>3 &middot; Heuristics and proofs</h2>
+ <h3>cornersHeuristic</h3>
+ <p>Remove the walls and count Manhattan distance. The cheapest way to visit the remaining corners in that relaxed maze is the
+ shortest Manhattan tour from Pacman through every unvisited corner. With at most four corners there are at most 24 orders to try, so it is computed exactly on every call.</p>
+ <div class="proof"><b class="t">Admissible</b><br>
+ Any real path visits the remaining corners in some order. Each leg between two consecutive stops is at least their Manhattan distance, because walls only lengthen a path.
+ So the real cost is at least the length of that order in the relaxed problem, which is at least the best order, which is <i>h</i>. At a goal there are no corners left and <i>h</i> = 0.</div>
+ <div class="proof"><b class="t">Consistent</b><br>
+ Take any step from <i>s</i> at position <i>p</i> to <i>s'</i> at position <i>p'</i>, with <i>d</i>(<i>p</i>, <i>p'</i>) = 1.
+ <i>Case 1, no new corner.</i> The remaining set is unchanged. Walking from <i>p</i> to <i>p'</i> and then following the optimal tour of <i>s'</i> is one candidate tour from <i>p</i>, so
+ <i>h</i>(<i>s</i>) &le; <i>d</i>(<i>p</i>, <i>p'</i>) + <i>h</i>(<i>s'</i>) = 1 + <i>h</i>(<i>s'</i>).
+ <i>Case 2, <i>p'</i> is a new corner <i>c</i>.</i> The tour of <i>s</i> can start with the leg <i>p</i> &rarr; <i>c</i> of length 1 and then follow the optimal tour of <i>s'</i> over the other corners, so the same inequality holds.
+ Hence <i>h</i>(<i>s</i>) &le; <i>c</i>(<i>s</i>, <i>a</i>, <i>s'</i>) + <i>h</i>(<i>s'</i>).</div>
+ <h3>foodHeuristic</h3>
+ <p>Let <i>F</i> be the remaining dots and <i>d</i> the true maze distance, computed with the provided <code>mazeDistance</code> (BFS) and cached in <code>problem.heuristicInfo</code>.
+ The heuristic is</p>
+ <p style="text-align:center"><i>h</i>(<i>s</i>) = min<sub><i>f</i>&isin;<i>F</i></sub> <i>d</i>(<i>p</i>, <i>f</i>) + MST<sub><i>d</i></sub>(<i>F</i>)</p>
+ <p>where MST<sub><i>d</i></sub>(<i>F</i>) is the weight of a minimum spanning tree over the dots with maze distances as edge weights (Prim). The tree depends only on which dots are left, so it is cached per dot set.
+ Cost: O(<i>k</i><sup>2</sup>) for one tree of <i>k</i> dots, each pair distance is one BFS the first time it is needed, and O(<i>k</i>) per call afterwards.</p>
+ <div class="proof"><b class="t">Admissible</b><br>
+ Any solution first reaches some dot <i>f</i><sub>1</sub>, which costs at least min <i>d</i>(<i>p</i>, <i>f</i>). From there it is a walk that touches every dot. The hops between consecutive dots form a connected graph on <i>F</i>
+ whose edges each cost at least the maze distance, so the walk costs at least the MST weight. The two parts add.</div>
+ <div class="proof"><b class="t">Consistent</b><br>
+ Step from <i>s</i> to <i>s'</i>, cost 1. <i>Case 1, no dot eaten.</i> <i>F</i> is unchanged, so the MST term is equal, and <i>d</i>(&middot;, <i>f</i>) changes by at most 1 per step, so the minimum changes by at most 1:
+ <i>h</i>(<i>s</i>) &le; 1 + <i>h</i>(<i>s'</i>).
+ <i>Case 2, dot <i>f</i> eaten, so <i>p'</i> = <i>f</i> and <i>F'</i> = <i>F</i> &minus; {<i>f</i>}.</i> If <i>F'</i> is empty, <i>h</i>(<i>s</i>) = <i>d</i>(<i>p</i>, <i>f</i>) = 1 and <i>h</i>(<i>s'</i>) = 0. Otherwise let <i>g</i> be the dot of <i>F'</i> nearest to <i>f</i>.
+ Adding the edge <i>f</i>&ndash;<i>g</i> to a minimum tree of <i>F'</i> spans <i>F</i>, so MST(<i>F</i>) &le; MST(<i>F'</i>) + <i>d</i>(<i>f</i>, <i>g</i>).
+ Also min <i>d</i>(<i>p</i>, &middot;) &le; <i>d</i>(<i>p</i>, <i>f</i>) = 1. Adding, <i>h</i>(<i>s</i>) &le; 1 + MST(<i>F'</i>) + <i>d</i>(<i>f</i>, <i>g</i>) = 1 + <i>h</i>(<i>s'</i>).</div>
+ <p>The autograder confirms it on every provided test: it checks that the heuristic never exceeds the true cost and never drops by more than the step cost.
+ On trickySearch it reports <b>255 expanded nodes</b> against the thresholds 15000 / 12000 / 9000 / 7000, so the question scores 5 of 4.</p>
+</section>
+
+<section class="page">
+ <h2>4 &middot; Empirical results</h2>
+ <p>Every run was made through <code>pacman.py</code>, which also wrote its CSV trace. Time is the search only, measured by the agent. The corner and food runs use A* with the heuristics of Section 3.</p>
+ <table>
+  <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
+  <tr><td>DFS tinyMaze</td><td class="num">10</td><td class="num">15</td><td class="num">0.00</td></tr>
+<tr><td>DFS mediumMaze</td><td class="num">130</td><td class="num">146</td><td class="num">0.00</td></tr>
+<tr><td>DFS bigMaze</td><td class="num">210</td><td class="num">390</td><td class="num">0.00</td></tr>
+<tr><td>DFS N-E-S-W order mediumMaze</td><td class="num">244</td><td class="num">267</td><td class="num">0.00</td></tr>
+<tr><td>BFS mediumMaze</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
+<tr><td>BFS bigMaze</td><td class="num">210</td><td class="num">620</td><td class="num">0.10</td></tr>
+<tr><td>UCS mediumMaze</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
+<tr><td>UCS mediumMaze (substitute for mediumDenselyMaze)</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
+<tr><td>UCS StayEastSearchAgent mediumMaze</td><td class="num">1</td><td class="num">260</td><td class="num">0.00</td></tr>
+<tr><td>GBFS bigMaze (Manhattan)</td><td class="num">210</td><td class="num">466</td><td class="num">0.00</td></tr>
+<tr><td>GBFS bigMaze (Euclidean)</td><td class="num">210</td><td class="num">471</td><td class="num">0.10</td></tr>
+<tr><td>A* bigMaze (null heuristic)</td><td class="num">210</td><td class="num">620</td><td class="num">0.10</td></tr>
+<tr><td>A* bigMaze (Manhattan)</td><td class="num">210</td><td class="num">549</td><td class="num">0.10</td></tr>
+<tr><td>BFS CornersProblem tinyCorners</td><td class="num">28</td><td class="num">252</td><td class="num">0.00</td></tr>
+<tr><td>A* corners mediumCorners</td><td class="num">106</td><td class="num">741</td><td class="num">0.30</td></tr>
+<tr><td>A* food trickySearch</td><td class="num">60</td><td class="num">255</td><td class="num">0.20</td></tr>
+<tr><td>ClosestDot bigSearch</td><td class="num">350</td><td class="num">n/a</td><td class="num">n/a</td></tr>
+ </table>
+ <div class="two">
+  <div>
+   <h3>What the numbers say</h3>
+   <ul>
+    <li>BFS and UCS agree on every unit-cost maze (68 on mediumMaze, 210 on bigMaze). UCS pays for the heap and gains nothing until step costs differ.</li>
+    <li>On StayEastSearchAgent the cost of a step falls to 0.5<sup>x</sup> toward the east. UCS finds a path of total cost 1 while BFS would ignore costs entirely.</li>
+    <li>A* with the Manhattan heuristic expands 549 nodes on bigMaze against 620 for the null heuristic, which is UCS in disguise. Both return cost 210, so the heuristic saved work without losing optimality.</li>
+    <li>GBFS expands fewer nodes than A* on bigMaze (466 vs 549) and still returns 210, but that is an accident of this maze. Section 5 shows the case where it does not.</li>
+    <li>DFS returns 130 on mediumMaze where the optimum is 68: cheap to run, no guarantee on quality.</li>
+   </ul>
+  </div>
+  <div>
+   <h3>Nodes expanded, multi-goal problems</h3>
+   <svg class="chart" viewBox="0 0 340 86" role="img">
+<text x="180" y="20" class="cl" text-anchor="end">CornersProblem BFS (tiny)</text>
+<rect x="190" y="7" width="30.6" height="16" rx="3" fill="var(--blue)"/>
+<text x="226.6" y="20" class="cv">252</text>
+<text x="180" y="46" class="cl" text-anchor="end">Corners A* (medium)</text>
+<rect x="190" y="33" width="90.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="286.0" y="46" class="cv">741</text>
+<text x="180" y="72" class="cl" text-anchor="end">Food A* (tricky)</text>
+<rect x="190" y="59" width="31.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="227.0" y="72" class="cv">255</text>
+</svg>
+  </div>
+ </div>
+</section>
+
+<section class="page">
+ <h2>5 &middot; Custom maze: the greedy trap</h2>
+ <p>The layout <code>24i3025Search.lay</code> is 26 &times; 13 cells. Pacman starts at the top right and the food is in the bottom-left corner (1, 1), where <code>SearchAgent</code> expects the goal.
+ It has decision branches, four dead ends and two ways to reach the food.</p>
+ <div class="two">
+  <div>
+   <ul>
+    <li><b>Decoy route.</b> Straight from the start, a corridor runs west, then turns into a long serpentine that hugs the goal. Every cell of it is close to (1, 1) in Manhattan terms, so <i>h</i> is small everywhere in it. It is 47 steps long.</li>
+    <li><b>True route.</b> The other way first walks along the top edge, away from the goal, so <i>h</i> rises before it falls, and then down the west column. It is 37 steps long.</li>
+    <li><b>Dead ends.</b> Stubs off both corridors and a side pocket give the searches places to waste time.</li>
+   </ul>
+   <p>Greedy search always takes the frontier state with the smallest <i>h</i>. The decoy corridor keeps offering smaller values than the top edge, so GBFS commits to the serpentine and never looks at the top route.
+   A* adds the cost already paid, <i>g</i>. Inside the serpentine <i>g</i> grows quickly while <i>h</i> barely moves, so <i>f</i> climbs above the top route's and A* switches to it.</p>
+  </div>
+  <div>
+   <h3>Path cost</h3>
+   <svg class="chart" viewBox="0 0 340 138" role="img">
+<text x="180" y="20" class="cl" text-anchor="end">DFS</text>
+<rect x="190" y="7" width="90.0" height="16" rx="3" fill="var(--bad)"/>
+<text x="286.0" y="20" class="cv">47</text>
+<text x="180" y="46" class="cl" text-anchor="end">BFS</text>
+<rect x="190" y="33" width="70.9" height="16" rx="3" fill="var(--blue)"/>
+<text x="266.9" y="46" class="cv">37</text>
+<text x="180" y="72" class="cl" text-anchor="end">UCS</text>
+<rect x="190" y="59" width="70.9" height="16" rx="3" fill="var(--blue)"/>
+<text x="266.9" y="72" class="cv">37</text>
+<text x="180" y="98" class="cl" text-anchor="end">GBFS</text>
+<rect x="190" y="85" width="90.0" height="16" rx="3" fill="var(--bad)"/>
+<text x="286.0" y="98" class="cv">47</text>
+<text x="180" y="124" class="cl" text-anchor="end">A*</text>
+<rect x="190" y="111" width="70.9" height="16" rx="3" fill="var(--blue)"/>
+<text x="266.9" y="124" class="cv">37</text>
+</svg>
+   <h3>Nodes expanded</h3>
+   <svg class="chart" viewBox="0 0 340 138" role="img">
+<text x="180" y="20" class="cl" text-anchor="end">DFS</text>
+<rect x="190" y="7" width="48.1" height="16" rx="3" fill="var(--blue)"/>
+<text x="244.1" y="20" class="cv">47</text>
+<text x="180" y="46" class="cl" text-anchor="end">BFS</text>
+<rect x="190" y="33" width="90.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="286.0" y="46" class="cv">88</text>
+<text x="180" y="72" class="cl" text-anchor="end">UCS</text>
+<rect x="190" y="59" width="90.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="286.0" y="72" class="cv">88</text>
+<text x="180" y="98" class="cl" text-anchor="end">GBFS</text>
+<rect x="190" y="85" width="55.2" height="16" rx="3" fill="var(--bad)"/>
+<text x="251.2" y="98" class="cv">54</text>
+<text x="180" y="124" class="cl" text-anchor="end">A*</text>
+<rect x="190" y="111" width="85.9" height="16" rx="3" fill="var(--blue)"/>
+<text x="281.9" y="124" class="cv">84</text>
+</svg>
+  </div>
+ </div>
+ <div class="two">
+  <figure class=""><img src="../../search/search/evidence/screenshots/custom_gbfs.png"><figcaption>GBFS: follows the serpentine, cost 47, 54 nodes.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/custom_astar.png"><figcaption>A*: takes the top edge, cost 37, 84 nodes.</figcaption></figure>
+ </div>
+ <div class="callout">GBFS expands 54 nodes and A* 84, so greedy is cheaper to run, but its path is 10 steps (27%) longer. BFS and UCS find the same optimum as A*
+ with 88 nodes. DFS lands on the decoy route as well (cost 47).</div>
+ <table>
+  <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
+  <tr><td>DFS custom maze</td><td class="num">47</td><td class="num">47</td><td class="num">0.00</td></tr>
+<tr><td>BFS custom maze</td><td class="num">37</td><td class="num">88</td><td class="num">0.00</td></tr>
+<tr><td>UCS custom maze</td><td class="num">37</td><td class="num">88</td><td class="num">0.00</td></tr>
+<tr><td>GBFS custom maze</td><td class="num">47</td><td class="num">54</td><td class="num">0.00</td></tr>
+<tr><td>A* custom maze</td><td class="num">37</td><td class="num">84</td><td class="num">0.00</td></tr>
+ </table>
+</section>
+
+<section class="page">
+ <h2>Appendix &middot; where the PDF and the starter code disagree</h2>
+ <h3>A. North-East-South-West order (Inconsistency #3)</h3>
+ <p>Task 1 asks for N&ndash;E&ndash;S&ndash;W expansion, but <code>PositionSearchProblem.getSuccessors</code> is marked &ldquo;do not change&rdquo; and returns N, S, E, W. The autograder's expected DFS answers assume that natural order.
+ So the reorder is done inside <code>search.py</code>: <code>fn=dfs</code> keeps the natural order and <code>fn=dfsNESW</code> applies the PDF order. <code>ENFORCE_NESW_DFS</code> flips the default in one place if the TA rules it global.
+ The PDF states the order only under Task 1, so BFS, UCS, GBFS and A* keep the natural order.</p>
+ <div class="two">
+  <figure class=""><img src="../../search/search/evidence/screenshots/dfs_mediumMaze.png"><figcaption>fn=dfs (natural order): cost 130, 146 nodes.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/dfsNESW_mediumMaze.png"><figcaption>fn=dfsNESW (N-E-S-W): cost 244, 267 nodes.</figcaption></figure>
+ </div>
+ <h3>B. Two UCS example commands that cannot run (Inconsistency #4)</h3>
+ <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>. Neither layout exists, and directional cost is an <i>agent</i> here, not a layout.
+ The literal commands fail exactly like this:</p>
+ <div class="csv">$ python pacman.py -l mediumDenselyMaze -p SearchAgent -a fn=ucs
+Exception: The layout mediumDenselyMaze cannot be found
+$ python pacman.py -l stayEastSearch -p SearchAgent -a fn=ucs
+Exception: The layout stayEastSearch cannot be found</div>
+ <p>Substitutes used: <code>-l mediumMaze -p SearchAgent -a fn=ucs -z .5</code> and <code>-l mediumMaze -p StayEastSearchAgent</code>.</p>
+ <div class="two">
+  <figure class=""><img src="../../search/search/evidence/screenshots/ucs_mediumMaze_z.png"><figcaption>Substitute 1: mediumMaze, fn=ucs, -z .5.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/ucs_stayEast.png"><figcaption>Substitute 2: StayEastSearchAgent, cost 1.</figcaption></figure>
+ </div>
+ <h3>C. Smaller notes</h3>
+ <ul>
+  <li><b>CSV logger vs the forbidden files.</b> The logger needs no change to <code>pacman.py</code> or <code>util.py</code>; it lives in <code>search.py</code>.</li>
+  <li><b>No GBFS stub or test.</b> <code>gbfs</code> was added to <code>search.py</code>; <code>SearchAgent</code> finds it with <code>getattr</code>.</li>
+  <li><b>h and f for uninformed searches.</b> DFS, BFS and UCS log <code>h = 0</code>, <code>f = g</code> so every CSV has the same columns.</li>
+  <li><b>Two-person group.</b> The layout is named after the first ID, <code>24i3025Search.lay</code>.</li>
+ </ul>
+</section>
+</body></html>

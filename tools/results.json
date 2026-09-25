@@ -1,0 +1,352 @@
+{
+  "experiments": [
+    {
+      "label": "dfs_tinyMaze",
+      "task": "Task 1",
+      "description": "DFS tinyMaze",
+      "command": "python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs",
+      "csv": [
+        "dfs_tinyMaze_20260925_111901.csv"
+      ],
+      "returncode": 0,
+      "cost": 10.0,
+      "nodes": 15.0,
+      "seconds": 0.0,
+      "score": 500.0,
+      "screenshot": "screenshots/dfs_tinyMaze.png"
+    },
+    {
+      "label": "dfs_mediumMaze",
+      "task": "Task 1",
+      "description": "DFS mediumMaze",
+      "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs",
+      "csv": [
+        "dfs_mediumMaze_20260925_111903.csv"
+      ],
+      "returncode": 0,
+      "cost": 130.0,
+      "nodes": 146.0,
+      "seconds": 0.0,
+      "score": 380.0,
+      "screenshot": "screenshots/dfs_mediumMaze.png"
+    },
+    {
+      "label": "dfs_bigMaze",
+      "task": "Task 1",
+      "description": "DFS bigMaze",
+      "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs",
+      "csv": [
+        "dfs_bigMaze_20260925_111906.csv"
+      ],
+      "returncode": 0,
+      "cost": 210.0,
+      "nodes": 390.0,
+      "seconds": 0.0,
+      "score": 300.0,
+      "screenshot": "screenshots/dfs_bigMaze.png"
+    },
+    {
+      "label": "dfsNESW_mediumMaze",
+      "task": "Task 1",
+      "description": "DFS N-E-S-W order mediumMaze",
+      "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=dfsNESW",
+      "csv": [
+        "dfs_mediumMaze_20260925_111914.csv"
+      ],
+      "returncode": 0,
+      "cost": 244.0,
+      "nodes": 267.0,
+      "seconds": 0.0,
+      "score": 266.0,
+      "screenshot": "screenshots/dfsNESW_mediumMaze.png"
+    },
+    {
+      "label": "bfs_mediumMaze",
+      "task": "Task 2",
+      "description": "BFS mediumMaze",
+      "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs",
+      "csv": [
+        "bfs_mediumMaze_20260925_111919.csv"
+      ],
+      "returncode": 0,
+      "cost": 68.0,
+      "nodes": 269.0,
+      "seconds": 0.0,
+      "score": 442.0,
+      "screenshot": "screenshots/bfs_mediumMaze.png"
+    },
+    {
+      "label": "bfs_bigMaze",
+      "task": "Task 2",
+      "description": "BFS bigMaze",
+      "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs",
+      "csv": [
+        "bfs_bigMaze_20260925_111922.csv"
+      ],
+      "returncode": 0,
+      "cost": 210.0,
+      "nodes": 620.0,
+      "seconds": 0.1,
+      "score": 300.0,
+      "screenshot": "screenshots/bfs_bigMaze.png"
+    },
+    {
+      "label": "ucs_mediumMaze",
+      "task": "Task 3",
+      "description": "UCS mediumMaze",
+      "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs",
+      "csv": [
+        "ucs_mediumMaze_20260925_111931.csv"
+      ],
+      "returncode": 0,
+      "cost": 68.0,
+      "nodes": 269.0,
+      "seconds": 0.0,
+      "score": 442.0,
+      "screenshot": "screenshots/ucs_mediumMaze.png"
+    },
+    {
+      "label": "ucs_mediumMaze_z",
+      "task": "Task 3",
+      "description": "UCS mediumMaze (substitute for mediumDenselyMaze)",
+      "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs -z .5",
+      "csv": [
+        "ucs_mediumMaze_20260925_111934.csv"
+      ],
+      "returncode": 0,
+      "cost": 68.0,
+      "nodes": 269.0,
+      "seconds": 0.0,
+      "score": 442.0,
+      "screenshot": "screenshots/ucs_mediumMaze_z.png"
+    },
+    {
+      "label": "ucs_stayEast",
+      "task": "Task 3",
+      "description": "UCS StayEastSearchAgent mediumMaze",
+      "command": "python pacman.py -l mediumMaze -p StayEastSearchAgent",
+      "csv": [
+        "ucs_mediumMaze_20260925_111937.csv"
+      ],
+      "returncode": 0,
+      "cost": 1.0,
+      "nodes": 260.0,
+      "seconds": 0.0,
+      "score": 436.0,
+      "screenshot": "screenshots/ucs_stayEast.png"
+    },
+    {
+      "label": "gbfs_bigMaze",
+      "task": "Task 4",
+      "description": "GBFS bigMaze (Manhattan)",
+      "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic",
+      "csv": [
+        "gbfs_bigMaze_20260925_111940.csv"
+      ],
+      "returncode": 0,
+      "cost": 210.0,
+      "nodes": 466.0,
+      "seconds": 0.0,
+      "score": 300.0,
+      "screenshot": "screenshots/gbfs_bigMaze.png"
+    },
+    {
+      "label": "gbfs_bigMaze_euclid",
+      "task": "Task 4",
+      "description": "GBFS bigMaze (Euclidean)",
+      "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=euclideanHeuristic",
+      "csv": [
+        "gbfs_bigMaze_20260925_111948.csv"
+      ],
+      "returncode": 0,
+      "cost": 210.0,
+      "nodes": 471.0,
+      "seconds": 0.1,
+      "score": 300.0,
+      "screenshot": "screenshots/gbfs_bigMaze_euclid.png"
+    },
+    {
+      "label": "astar_bigMaze_null",
+      "task": "Task 5",
+      "description": "A* bigMaze (null heuristic)",
+      "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=nullHeuristic",
+      "csv": [
+        "astar_bigMaze_20260925_112002.csv"
+      ],
+      "returncode": 0,
+      "cost": 210.0,
+      "nodes": 620.0,
+      "seconds": 0.1,
+      "score": 300.0,
+      "screenshot": "screenshots/astar_bigMaze_null.png"
+    },
+    {
+      "label": "astar_bigMaze",
+      "task": "Task 5",
+      "description": "A* bigMaze (Manhattan)",
+      "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic",
+      "csv": [
+        "astar_bigMaze_20260925_112012.csv"
+      ],
+      "returncode": 0,
+      "cost": 210.0,
+      "nodes": 549.0,
+      "seconds": 0.1,
+      "score": 300.0,
+      "screenshot": "screenshots/astar_bigMaze.png"
+    },
+    {
+      "label": "bfs_tinyCorners",
+      "task": "Task 6",
+      "description": "BFS CornersProblem tinyCorners",
+      "command": "python pacman.py -l tinyCorners -p SearchAgent -a fn=bfs,prob=CornersProblem",
+      "csv": [
+        "bfs_tinyCorners_20260925_112020.csv"
+      ],
+      "returncode": 0,
+      "cost": 28.0,
+      "nodes": 252.0,
+      "seconds": 0.0,
+      "score": 512.0,
+      "screenshot": "screenshots/bfs_tinyCorners.png"
+    },
+    {
+      "label": "astar_mediumCorners",
+      "task": "Task 6",
+      "description": "A* corners mediumCorners",
+      "command": "python pacman.py -l mediumCorners -p AStarCornersAgent -z .5",
+      "csv": [
+        "astar_mediumCorners_20260925_112022.csv"
+      ],
+      "returncode": 0,
+      "cost": 106.0,
+      "nodes": 741.0,
+      "seconds": 0.3,
+      "score": 434.0,
+      "screenshot": "screenshots/astar_mediumCorners.png"
+    },
+    {
+      "label": "astar_trickySearch",
+      "task": "Task 7",
+      "description": "A* food trickySearch",
+      "command": "python pacman.py -l trickySearch -p AStarFoodSearchAgent",
+      "csv": [
+        "astar_trickySearch_20260925_112026.csv"
+      ],
+      "returncode": 0,
+      "cost": 60.0,
+      "nodes": 255.0,
+      "seconds": 0.2,
+      "score": 570.0,
+      "screenshot": "screenshots/astar_trickySearch.png"
+    },
+    {
+      "label": "bfs_bigSearch",
+      "task": "Task 7",
+      "description": "ClosestDot bigSearch",
+      "command": "python pacman.py -l bigSearch -p ClosestDotSearchAgent",
+      "csv": [
+        "bfs_bigSearch_20260925_112028.csv"
+      ],
+      "returncode": 0,
+      "cost": 350.0,
+      "nodes": null,
+      "seconds": null,
+      "score": 2360.0,
+      "screenshot": "screenshots/bfs_bigSearch.png"
+    },
+    {
+      "label": "custom_dfs",
+      "task": "Custom",
+      "description": "DFS custom maze",
+      "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=dfs",
+      "csv": [
+        "dfs_24i3025Search_20260925_112035.csv"
+      ],
+      "returncode": 0,
+      "cost": 47.0,
+      "nodes": 47.0,
+      "seconds": 0.0,
+      "score": 463.0,
+      "screenshot": "screenshots/custom_dfs.png"
+    },
+    {
+      "label": "custom_bfs",
+      "task": "Custom",
+      "description": "BFS custom maze",
+      "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=bfs",
+      "csv": [
+        "bfs_24i3025Search_20260925_112038.csv"
+      ],
+      "returncode": 0,
+      "cost": 37.0,
+      "nodes": 88.0,
+      "seconds": 0.0,
+      "score": 473.0,
+      "screenshot": "screenshots/custom_bfs.png"
+    },
+    {
+      "label": "custom_ucs",
+      "task": "Custom",
+      "description": "UCS custom maze",
+      "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=ucs",
+      "csv": [
+        "ucs_24i3025Search_20260925_112040.csv"
+      ],
+      "returncode": 0,
+      "cost": 37.0,
+      "nodes": 88.0,
+      "seconds": 0.0,
+      "score": 473.0,
+      "screenshot": "screenshots/custom_ucs.png"
+    },
+    {
+      "label": "custom_gbfs",
+      "task": "Custom",
+      "description": "GBFS custom maze",
+      "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic",
+      "csv": [
+        "gbfs_24i3025Search_20260925_112042.csv"
+      ],
+      "returncode": 0,
+      "cost": 47.0,
+      "nodes": 54.0,
+      "seconds": 0.0,
+      "score": 463.0,
+      "screenshot": "screenshots/custom_gbfs.png"
+    },
+    {
+      "label": "custom_astar",
+      "task": "Custom",
+      "description": "A* custom maze",
+      "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic",
+      "csv": [
+        "astar_24i3025Search_20260925_112044.csv"
+      ],
+      "returncode": 0,
+      "cost": 37.0,
+      "nodes": 84.0,
+      "seconds": 0.0,
+      "score": 473.0,
+      "screenshot": "screenshots/custom_astar.png"
+    }
+  ],
+  "broken": [
+    {
+      "label": "pdf_mediumDenselyMaze",
+      "command": "python pacman.py -l mediumDenselyMaze -p SearchAgent -a fn=ucs",
+      "returncode": 1,
+      "message": [
+        "Exception: The layout mediumDenselyMaze cannot be found"
+      ]
+    },
+    {
+      "label": "pdf_stayEastSearch",
+      "command": "python pacman.py -l stayEastSearch -p SearchAgent -a fn=ucs",
+      "returncode": 1,
+      "message": [
+        "Exception: The layout stayEastSearch cannot be found"
+      ]
+    }
+  ]
+}

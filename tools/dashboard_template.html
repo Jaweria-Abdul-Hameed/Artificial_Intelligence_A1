@@ -1,0 +1,211 @@
+<title>Pacman Search Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f4f5fc;--surface:#ffffff;--surface2:#eceefb;--line:#d9dcf0;--text:#0e1330;--muted:#5b6187;
+  --accent:#2437e8;--accent-ink:#ffffff;--pac:#ffc800;--good:#0f8a5f;--bad:#c9341f;--shadow:0 1px 2px rgba(14,19,48,.06),0 8px 24px rgba(14,19,48,.06);
+  --display:'Bricolage Grotesque','IBM Plex Sans',system-ui,sans-serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;--bg:#0a0e21;--surface:#121936;--surface2:#1a2246;--line:#262f5c;--text:#e9ecff;--muted:#8f98c8;
+  --accent:#6b7bff;--accent-ink:#0a0e21;--good:#3ddc97;--bad:#ff7a63;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg:#0a0e21;--surface:#121936;--surface2:#1a2246;--line:#262f5c;--text:#e9ecff;--muted:#8f98c8;
+  --accent:#6b7bff;--accent-ink:#0a0e21;--good:#3ddc97;--bad:#ff7a63;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35)}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;line-height:1.5;padding-inline:16px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 56px;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.015em;margin:0;text-wrap:balance}
+.eyebrow{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px}
+.eyebrow i{width:14px;height:14px;border-radius:50%;background:var(--pac);display:inline-block;
+  clip-path:polygon(50% 50%,100% 25%,100% 0,0 0,0 100%,100% 100%,100% 75%)}
+header{display:flex;flex-direction:column;gap:10px}
+h1{font-size:clamp(32px,6vw,56px);line-height:1.02}
+.lede{max-width:62ch;color:var(--muted);font-size:16px;margin:0}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.tile b{display:block;font:700 30px var(--display);letter-spacing:-.02em}
+.tile span{color:var(--muted);font-size:12.5px}
+.tile.hot b{color:var(--accent)}
+section{display:flex;flex-direction:column;gap:14px}
+.sechead{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:10px}
+h2{font-size:24px}
+.sub{color:var(--muted);margin:0;max-width:60ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip,.seg button{font:500 12.5px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--text);
+  padding:6px 12px;border-radius:999px;cursor:pointer;transition:background .15s,border-color .15s}
+.chip:hover,.seg button:hover{border-color:var(--accent)}
+.chip[aria-pressed=true],.seg button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.explorer{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px;align-items:start}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);max-height:640px;overflow:auto;padding:6px}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:left;background:none;border:0;border-radius:9px;padding:9px 11px;
+  color:var(--text);cursor:pointer;font:inherit}
+.row:hover{background:var(--surface2)}
+.row[aria-current=true]{background:var(--surface2);box-shadow:inset 3px 0 0 var(--accent)}
+.row .t{font:600 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);grid-column:1/-1}
+.row .n{font-weight:500}
+.row .v{font:600 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;align-self:center}
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.detail h3{font-size:22px}
+.shot{border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.shot img{display:block;width:100%;height:auto}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.m{background:var(--surface2);border-radius:10px;padding:10px 12px}
+.m b{display:block;font:700 22px var(--display);font-variant-numeric:tabular-nums}
+.m span{font-size:11.5px;color:var(--muted)}
+.cmd{display:flex;gap:8px;align-items:stretch}
+.cmd code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;background:var(--surface2);border-radius:9px;padding:9px 12px;font:12px var(--mono)}
+.btn{font:600 12px var(--body);background:var(--accent);color:var(--accent-ink);border:0;border-radius:9px;padding:0 14px;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.file{font:11.5px var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.compare{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:64px 1fr 44px;align-items:center;gap:10px;font-size:12.5px}
+.bar .lab{font-weight:600}
+.bar .track{height:12px;border-radius:6px;background:var(--surface2);overflow:hidden}
+.bar .fill{height:100%;border-radius:6px;background:var(--accent);transition:width .35s}
+.bar .fill.bad{background:var(--bad)}
+.bar .fill.pac{background:var(--pac)}
+.bar .num{font:600 12px var(--mono);text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar[data-on=true] .lab{color:var(--accent)}
+.cap{font:600 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.note{background:var(--surface2);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--text)}
+.note b{color:var(--bad)}
+.grader{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+.q .k{font:600 11px var(--mono);letter-spacing:.1em;color:var(--muted)}
+.q b{display:block;font:700 22px var(--display);margin:2px 0}
+.q span{font-size:12px;color:var(--muted)}
+.pass{display:inline-block;margin-top:6px;font:600 10.5px var(--mono);color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent);padding:2px 8px;border-radius:999px}
+footer{color:var(--muted);font-size:12px}
+@media (max-width:860px){.explorer,.compare{grid-template-columns:minmax(0,1fr)}.list{max-height:280px}}
+@media (max-width:480px){.metrics{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow"><i></i>AI2002 · Assignment 01 · Search</div>
+  <h1>Pacman Search Lab</h1>
+  <p class="lede">Every run behind the report in one place: five search algorithms, the corners and food problems, and a custom maze built to fool greedy search.</p>
+</header>
+
+<div class="strip" id="strip"></div>
+
+<section>
+  <div class="sechead">
+    <div><h2>Run explorer</h2><p class="sub">Pick a run to see the board Pacman solved, the cells the search expanded, and the numbers logged in its CSV.</p></div>
+    <div class="chips" id="chips" role="group" aria-label="Filter by task"></div>
+  </div>
+  <div class="explorer">
+    <div class="list" id="list"></div>
+    <article class="detail" id="detail" aria-live="polite"></article>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <div><h2>The greedy trap</h2><p class="sub">On the custom maze the food sits in the bottom-left corner. A long serpentine near it looks close in Manhattan distance, so greedy search commits to it.</p></div>
+    <div class="seg" id="seg" role="group" aria-label="Algorithm"></div>
+  </div>
+  <div class="compare">
+    <div class="panel"><div class="shot"><img id="trapimg" alt="Custom maze solved by the selected algorithm"></div><div class="file" id="trapcap"></div></div>
+    <div class="panel">
+      <div><div class="cap">Path cost (steps)</div><div class="bars" id="costbars"></div></div>
+      <div><div class="cap">Nodes expanded</div><div class="bars" id="nodebars"></div></div>
+      <div class="note" id="trapnote"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><div><h2>Autograder</h2><p class="sub">python autograder.py, all eight questions.</p></div></div>
+  <div class="grader" id="grader"></div>
+</section>
+
+<footer>Numbers come from the run output and the CSV traces in evidence/. Nothing here is estimated.</footer>
+</div>
+
+<script>
+const RUNS = /*RUNS*/[];
+const byId = Object.fromEntries(RUNS.map(r => [r.id, r]));
+const GRADES = [['q1','Depth-first',3,3],['q2','Breadth-first',3,3],['q3','Uniform-cost',3,3],['q4','A*',3,3],
+  ['q5','Corners problem',3,3],['q6','Corners heuristic',3,3],['q7','Food heuristic',5,4],['q8','Closest dot',3,3]];
+const el = id => document.getElementById(id);
+const fmt = v => v == null ? '–' : (Number.isInteger(v) ? v : v.toFixed(2));
+const custom = {DFS:'custom_dfs',BFS:'custom_bfs',UCS:'custom_ucs',GBFS:'custom_gbfs','A*':'custom_astar'};
+
+// summary strip
+const gb = byId.custom_gbfs, as = byId.custom_astar;
+el('strip').innerHTML = [
+  ['26 / 25','autograder points across q1–q8','hot'],
+  [RUNS.length,'runs traced to CSV, each with a screenshot',''],
+  [byId.astar_trickySearch.nodes,'nodes for A* on trickySearch (top mark at 7000)',''],
+  [gb.cost + ' vs ' + as.cost,'GBFS vs A* path cost on the custom maze','hot']
+].map(t => `<div class="tile ${t[2]}"><b>${t[0]}</b><span>${t[1]}</span></div>`).join('');
+
+// explorer
+const tasks = ['All', ...Array.from(new Set(RUNS.map(r => r.task)))];
+let filter = 'All', current = RUNS[0].id;
+function drawChips() {
+  el('chips').innerHTML = tasks.map(t => `<button class="chip" aria-pressed="${t===filter}" data-t="${t}">${t}</button>`).join('');
+  el('chips').querySelectorAll('button').forEach(b => b.onclick = () => { filter = b.dataset.t; drawChips(); drawList(); });
+}
+function drawList() {
+  const rows = RUNS.filter(r => filter === 'All' || r.task === filter);
+  if (!rows.some(r => r.id === current)) { current = rows[0].id; drawDetail(); }
+  el('list').innerHTML = rows.map(r => `<button class="row" data-id="${r.id}" aria-current="${r.id===current}">
+    <span class="t">${r.task}</span><span class="n">${r.name}</span><span class="v">${fmt(r.nodes)} n</span></button>`).join('');
+  el('list').querySelectorAll('.row').forEach(b => b.onclick = () => { current = b.dataset.id; drawList(); drawDetail(); });
+}
+function drawDetail() {
+  const r = byId[current];
+  el('detail').innerHTML = `<div class="eyebrow">${r.task}</div><h3>${r.name}</h3>
+    <div class="shot"><img src="${r.img}" alt="${r.name}"></div>
+    <div class="metrics"><div class="m"><b>${fmt(r.cost)}</b><span>path cost</span></div>
+      <div class="m"><b>${fmt(r.nodes)}</b><span>nodes expanded</span></div>
+      <div class="m"><b>${r.secs == null ? '–' : r.secs.toFixed(2) + ' s'}</b><span>search time</span></div></div>
+    <div class="cmd"><code>${r.cmd}</code><button class="btn" id="copy">Copy</button></div>
+    <div class="file">evidence/${r.csv}</div>`;
+  el('copy').onclick = async e => {
+    try { await navigator.clipboard.writeText(r.cmd); e.target.textContent = 'Copied'; }
+    catch (_) { const c = el('detail').querySelector('code'); const s = getSelection(), g = document.createRange(); g.selectNodeContents(c); s.removeAllRanges(); s.addRange(g); e.target.textContent = 'Selected'; }
+    setTimeout(() => e.target.textContent = 'Copy', 1400);
+  };
+}
+
+// trap comparison
+let algo = 'GBFS';
+const notes = {
+  'GBFS': `<b>GBFS takes the decoy.</b> It expands only ${gb.nodes} nodes but walks ${gb.cost} steps, ${gb.cost - as.cost} more than the best path.`,
+  'A*': `A* pays for the serpentine with g, so its f rises above the top route and it switches. ${as.cost} steps, ${as.nodes} nodes.`,
+  'BFS': `BFS is optimal on unit costs and finds the same ${byId.custom_bfs.cost} steps, at ${byId.custom_bfs.nodes} nodes.`,
+  'UCS': `With every step costing 1, UCS matches BFS: ${byId.custom_ucs.cost} steps, ${byId.custom_ucs.nodes} nodes.`,
+  'DFS': `<b>DFS also falls for the decoy</b> and returns ${byId.custom_dfs.cost} steps. It has no guarantee on quality.`
+};
+function bars(elId, key, worst) {
+  const max = Math.max(...Object.values(custom).map(id => byId[id][key]));
+  el(elId).innerHTML = Object.entries(custom).map(([a, id]) => {
+    const v = byId[id][key], cls = worst && v === max ? 'bad' : (a === 'A*' ? 'pac' : '');
+    return `<div class="bar" data-on="${a===algo}"><span class="lab">${a}</span><div class="track"><div class="fill ${cls}" style="width:${v/max*100}%"></div></div><span class="num">${v}</span></div>`;
+  }).join('');
+}
+function drawTrap() {
+  const r = byId[custom[algo]];
+  el('seg').innerHTML = Object.keys(custom).map(a => `<button aria-pressed="${a===algo}" data-a="${a}">${a}</button>`).join('');
+  el('seg').querySelectorAll('button').forEach(b => b.onclick = () => { algo = b.dataset.a; drawTrap(); });
+  el('trapimg').src = r.img;
+  el('trapcap').textContent = 'evidence/' + r.csv;
+  bars('costbars', 'cost', true); bars('nodebars', 'nodes', false);
+  el('trapnote').innerHTML = notes[algo];
+}
+
+// autograder
+el('grader').innerHTML = GRADES.map(g => `<div class="q"><div class="k">${g[0].toUpperCase()}</div><b>${g[2]}/${g[3]}</b><span>${g[1]}</span><br><span class="pass">PASS</span></div>`).join('');
+
+drawChips(); drawList(); drawDetail(); drawTrap();
+</script>
