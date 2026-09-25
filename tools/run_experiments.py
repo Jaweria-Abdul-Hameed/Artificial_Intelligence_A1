@@ -126,6 +126,9 @@ def main():
     questions = [{'q': m[0], 'got': float(m[1]), 'max': float(m[2])}
                  for m in re.findall(r'^Question (q\d): ([\d.]+)/([\d.]+) ?$', grader, re.M)]
     total = re.search(r'^Total: ([\d.]+)/([\d.]+)', grader, re.M)
+    if not questions or not total:
+        raise SystemExit('could not parse the autograder output:
+' + grader[-600:])
     autograder = {'questions': questions,
                   'total': [float(total.group(1)), float(total.group(2))] if total else None}
     with open(os.path.join(ROOT, 'tools', 'results.json'), 'w') as fh:

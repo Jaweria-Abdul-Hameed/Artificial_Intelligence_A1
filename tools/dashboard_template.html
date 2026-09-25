@@ -80,6 +80,7 @@ h2{font-size:24px}
 .q .k{font:600 11px var(--mono);letter-spacing:.1em;color:var(--muted)}
 .q b{display:block;font:700 22px var(--display);margin:2px 0}
 .q span{font-size:12px;color:var(--muted)}
+.pass.fail{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
 .pass{display:inline-block;margin-top:6px;font:600 10.5px var(--mono);color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent);padding:2px 8px;border-radius:999px}
 footer{color:var(--muted);font-size:12px}
 @media (max-width:860px){.explorer,.compare{grid-template-columns:minmax(0,1fr)}.list{max-height:280px}}
@@ -206,7 +207,7 @@ function drawTrap() {
 }
 
 // autograder
-el('grader').innerHTML = GRADES.map(g => `<div class="q"><div class="k">${g[0].toUpperCase()}</div><b>${g[2]}/${g[3]}</b><span>${g[1]}</span><br><span class="pass">${g[2] >= g[3] ? "PASS" : "CHECK"}</span></div>`).join('');
+el('grader').innerHTML = GRADES.map(g => `<div class="q"><div class="k">${g[0].toUpperCase()}</div><b>${g[2]}/${g[3]}</b><span>${g[1]}</span><br><span class="pass ${g[2] >= g[3] ? '' : 'fail'}">${g[2] >= g[3] ? "PASS" : "CHECK"}</span></div>`).join('');
 
 drawChips(); drawList(); drawDetail(); drawTrap();
 </script>
