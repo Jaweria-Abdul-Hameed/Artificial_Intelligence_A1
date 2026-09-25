@@ -487,13 +487,11 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     remaining = frozenset(foodList)
     if remaining not in mstCache:
         # Prim's algorithm over maze distances
-        inTree = {foodList[0]}
         best = {f: dist(foodList[0], f) for f in foodList[1:]}
         total = 0
         while best:
             nxt = min(best, key=best.get)
             total += best.pop(nxt)
-            inTree.add(nxt)
             for f in best:
                 d = dist(nxt, f)
                 if d < best[f]:
