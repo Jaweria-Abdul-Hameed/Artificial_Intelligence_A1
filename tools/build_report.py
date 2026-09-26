@@ -309,10 +309,9 @@ BODY = """
 <section class="page">
  <h2>Appendix &middot; where the PDF and the starter code disagree</h2>
  <h3>A. North-East-South-West order (Inconsistency #3)</h3>
- <p>Task 1 requires N&ndash;E&ndash;S&ndash;W expansion, while the protected <code>PositionSearchProblem.getSuccessors</code> returns N, S, E, W. Following the teacher's instruction to obey the PDF without changing protected code, <code>search.py</code> reorders DFS successors and reverses the push order so North is expanded first. Both <code>fn=dfs</code> and the descriptive <code>fn=dfsNESW</code> use this behavior. The starter q1 path fixture assumes its natural order and therefore disagrees with the PDF-mandated route; no protected file or fixture was changed.</p>
+ <p>Task 1 names N&ndash;E&ndash;S&ndash;W expansion, but the protected <code>PositionSearchProblem.getSuccessors</code> returns N, S, E, W and the autograder q1 reference solutions are generated from that order. Following the teacher instruction that all tests must pass, <code>depthFirstSearch</code> pushes successors in the order <code>getSuccessors</code> returns them, with no reordering. No other algorithm reorders successors, and no protected file or fixture was changed.</p>
  <div class="two">
   %(fig_dfs)s
-  %(fig_nesw)s
  </div>
  <h3>B. Two UCS example commands that cannot run (Inconsistency #4)</h3>
  <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>. Neither layout exists, and directional cost is an <i>agent</i> here, not a layout.
@@ -370,7 +369,6 @@ def main():
         extra=g('custom_gbfs') - g('custom_astar'),
         pct=round(100.0 * (g('custom_gbfs') - g('custom_astar')) / g('custom_astar')),
         fig_dfs=fig('dfs_mediumMaze', 'fn=dfs (mandatory N-E-S-W): cost %s, %s nodes.' % (n('dfs_mediumMaze', 'cost'), n('dfs_mediumMaze'))),
-        fig_nesw=fig('dfsNESW_mediumMaze', 'fn=dfsNESW alias: cost %s, %s nodes.' % (n('dfsNESW_mediumMaze', 'cost'), n('dfsNESW_mediumMaze'))),
         fig_ucsz=fig('ucs_mediumMaze_z', 'Substitute 1: mediumMaze, fn=ucs, -z .5.'),
         fig_stay=fig('ucs_stayEast', 'Substitute 2: StayEastSearchAgent, cost %s.' % n('ucs_stayEast', 'cost')),
         broken=html.escape('\n'.join('$ %s\n%s' % (b['command'], ' '.join(b['message'])) for b in BROKEN.values())),

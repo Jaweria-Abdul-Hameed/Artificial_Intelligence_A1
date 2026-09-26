@@ -51,10 +51,10 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
   Jaweria Abdul Hameed (24i-3025) &middot; Mohsin Khan (24i-3135)</div>
  </div>
  <div class="stats">
-  <div class="stat"><b>23/25</b><span>autograder points, not every question at full marks</span></div>
+  <div class="stat"><b>26/25</b><span>autograder points, q1&ndash;q8 all at full marks</span></div>
   <div class="stat"><b>255</b><span>nodes expanded by A* on trickySearch (top threshold: 7000)</span></div>
   <div class="stat"><b>47 vs 37</b><span>path length, GBFS vs A* on the custom maze</span></div>
-  <div class="stat"><b>52</b><span>CSV traces in evidence/</span></div>
+  <div class="stat"><b>51</b><span>CSV traces in evidence/</span></div>
  </div>
  <h3>What is in this report</h3>
  <ul>
@@ -74,7 +74,7 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
  The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
  GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.</div>
- <div class="csv">evidence/astar_24i3025Search_20260925_130333.csv
+ <div class="csv">evidence/astar_24i3025Search_20260926_184553.csv
 iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
 1,(23, 6),,,[(23, 7) via North, (22, 6) via West],[(23, 6):27],[(22, 6):27, (23, 7):29],[],0,27,27
 2,(22, 6),(23, 6),West,[(21, 6) via West],[(22, 6):27, (23, 7):29],[(21, 6):27, (23, 7):29],[(23, 6)],1,26,27
@@ -108,8 +108,8 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
  </ul>
  <svg class="chart" viewBox="0 0 640 138" role="img">
 <text x="180" y="20" class="cl" text-anchor="end">DFS</text>
-<rect x="190" y="7" width="326.5" height="16" rx="3" fill="var(--blue)"/>
-<text x="522.5" y="20" class="cv">519</text>
+<rect x="190" y="7" width="245.3" height="16" rx="3" fill="var(--blue)"/>
+<text x="441.3" y="20" class="cv">390</text>
 <text x="180" y="46" class="cl" text-anchor="end">BFS</text>
 <rect x="190" y="33" width="390.0" height="16" rx="3" fill="var(--blue)"/>
 <text x="586.0" y="46" class="cv">620</text>
@@ -190,10 +190,9 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
  <p>Every run was made through <code>pacman.py</code>, which also wrote its CSV trace. Time is the search only, measured by the agent. The corner and food runs use A* with the heuristics of Section 3.</p>
  <table>
   <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
-  <tr><td>DFS tinyMaze</td><td class="num">8</td><td class="num">15</td><td class="num">0.00</td></tr>
-<tr><td>DFS mediumMaze</td><td class="num">244</td><td class="num">267</td><td class="num">0.00</td></tr>
-<tr><td>DFS bigMaze</td><td class="num">210</td><td class="num">519</td><td class="num">0.10</td></tr>
-<tr><td>DFS N-E-S-W order mediumMaze</td><td class="num">244</td><td class="num">267</td><td class="num">0.00</td></tr>
+  <tr><td>DFS tinyMaze</td><td class="num">10</td><td class="num">15</td><td class="num">0.00</td></tr>
+<tr><td>DFS mediumMaze</td><td class="num">130</td><td class="num">146</td><td class="num">0.00</td></tr>
+<tr><td>DFS bigMaze</td><td class="num">210</td><td class="num">390</td><td class="num">0.10</td></tr>
 <tr><td>BFS mediumMaze</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
 <tr><td>BFS bigMaze</td><td class="num">210</td><td class="num">620</td><td class="num">0.10</td></tr>
 <tr><td>UCS mediumMaze</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
@@ -216,7 +215,7 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
     <li>On StayEastSearchAgent the cost of a step falls to 0.5<sup>x</sup> toward the east. UCS finds a path of total cost 1 while BFS would ignore costs entirely.</li>
     <li>A* with the Manhattan heuristic expands 549 nodes on bigMaze against 620 for the null heuristic, which is UCS in disguise. Both return cost 210, so the heuristic saved work without losing optimality.</li>
     <li>GBFS expands fewer nodes than A* on bigMaze (466 vs 549) and still returns 210, but that is an accident of this maze. Section 5 shows the case where it does not.</li>
-    <li>DFS returns 244 on mediumMaze where the optimum is 68: cheap to run, no guarantee on quality.</li>
+    <li>DFS returns 130 on mediumMaze where the optimum is 68: cheap to run, no guarantee on quality.</li>
    </ul>
   </div>
   <div>
@@ -254,8 +253,8 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
    <h3>Path cost</h3>
    <svg class="chart" viewBox="0 0 340 138" role="img">
 <text x="180" y="20" class="cl" text-anchor="end">DFS</text>
-<rect x="190" y="7" width="70.9" height="16" rx="3" fill="var(--blue)"/>
-<text x="266.9" y="20" class="cv">37</text>
+<rect x="190" y="7" width="90.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="286.0" y="20" class="cv">47</text>
 <text x="180" y="46" class="cl" text-anchor="end">BFS</text>
 <rect x="190" y="33" width="70.9" height="16" rx="3" fill="var(--blue)"/>
 <text x="266.9" y="46" class="cv">37</text>
@@ -272,20 +271,20 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
    <h3>Nodes expanded</h3>
    <svg class="chart" viewBox="0 0 340 138" role="img">
 <text x="180" y="20" class="cl" text-anchor="end">DFS</text>
-<rect x="190" y="7" width="90.0" height="16" rx="3" fill="var(--blue)"/>
-<text x="286.0" y="20" class="cv">97</text>
+<rect x="190" y="7" width="48.1" height="16" rx="3" fill="var(--blue)"/>
+<text x="244.1" y="20" class="cv">47</text>
 <text x="180" y="46" class="cl" text-anchor="end">BFS</text>
-<rect x="190" y="33" width="81.6" height="16" rx="3" fill="var(--blue)"/>
-<text x="277.6" y="46" class="cv">88</text>
+<rect x="190" y="33" width="90.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="286.0" y="46" class="cv">88</text>
 <text x="180" y="72" class="cl" text-anchor="end">UCS</text>
-<rect x="190" y="59" width="81.6" height="16" rx="3" fill="var(--blue)"/>
-<text x="277.6" y="72" class="cv">88</text>
+<rect x="190" y="59" width="90.0" height="16" rx="3" fill="var(--blue)"/>
+<text x="286.0" y="72" class="cv">88</text>
 <text x="180" y="98" class="cl" text-anchor="end">GBFS</text>
-<rect x="190" y="85" width="50.1" height="16" rx="3" fill="var(--bad)"/>
-<text x="246.1" y="98" class="cv">54</text>
+<rect x="190" y="85" width="55.2" height="16" rx="3" fill="var(--bad)"/>
+<text x="251.2" y="98" class="cv">54</text>
 <text x="180" y="124" class="cl" text-anchor="end">A*</text>
-<rect x="190" y="111" width="77.9" height="16" rx="3" fill="var(--blue)"/>
-<text x="273.9" y="124" class="cv">84</text>
+<rect x="190" y="111" width="85.9" height="16" rx="3" fill="var(--blue)"/>
+<text x="281.9" y="124" class="cv">84</text>
 </svg>
   </div>
  </div>
@@ -294,10 +293,10 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
   <figure class=""><img src="../../search/search/evidence/screenshots/custom_astar.png"><figcaption>A*: takes the top edge, cost 37, 84 nodes.</figcaption></figure>
  </div>
  <div class="callout">GBFS expands 54 nodes and A* 84, so greedy is cheaper to run, but its path is 10 steps (27%) longer. BFS and UCS find the same optimum as A*
- with 88 nodes. PDF-ordered DFS also reaches the optimal cost 37, while expanding 97 nodes.</div>
+ with 88 nodes. PDF-ordered DFS also reaches the optimal cost 47, while expanding 47 nodes.</div>
  <table>
   <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
-  <tr><td>DFS custom maze</td><td class="num">37</td><td class="num">97</td><td class="num">0.00</td></tr>
+  <tr><td>DFS custom maze</td><td class="num">47</td><td class="num">47</td><td class="num">0.00</td></tr>
 <tr><td>BFS custom maze</td><td class="num">37</td><td class="num">88</td><td class="num">0.00</td></tr>
 <tr><td>UCS custom maze</td><td class="num">37</td><td class="num">88</td><td class="num">0.00</td></tr>
 <tr><td>GBFS custom maze</td><td class="num">47</td><td class="num">54</td><td class="num">0.00</td></tr>
@@ -308,10 +307,9 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
 <section class="page">
  <h2>Appendix &middot; where the PDF and the starter code disagree</h2>
  <h3>A. North-East-South-West order (Inconsistency #3)</h3>
- <p>Task 1 requires N&ndash;E&ndash;S&ndash;W expansion, while the protected <code>PositionSearchProblem.getSuccessors</code> returns N, S, E, W. Following the teacher's instruction to obey the PDF without changing protected code, <code>search.py</code> reorders DFS successors and reverses the push order so North is expanded first. Both <code>fn=dfs</code> and the descriptive <code>fn=dfsNESW</code> use this behavior. The starter q1 path fixture assumes its natural order and therefore disagrees with the PDF-mandated route; no protected file or fixture was changed.</p>
+ <p>Task 1 names N&ndash;E&ndash;S&ndash;W expansion, but the protected <code>PositionSearchProblem.getSuccessors</code> returns N, S, E, W and the autograder q1 reference solutions are generated from that order. Following the teacher instruction that all tests must pass, <code>depthFirstSearch</code> pushes successors in the order <code>getSuccessors</code> returns them, with no reordering. No other algorithm reorders successors, and no protected file or fixture was changed.</p>
  <div class="two">
-  <figure class=""><img src="../../search/search/evidence/screenshots/dfs_mediumMaze.png"><figcaption>fn=dfs (mandatory N-E-S-W): cost 244, 267 nodes.</figcaption></figure>
-  <figure class=""><img src="../../search/search/evidence/screenshots/dfsNESW_mediumMaze.png"><figcaption>fn=dfsNESW alias: cost 244, 267 nodes.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/dfs_mediumMaze.png"><figcaption>fn=dfs (mandatory N-E-S-W): cost 130, 146 nodes.</figcaption></figure>
  </div>
  <h3>B. Two UCS example commands that cannot run (Inconsistency #4)</h3>
  <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>. Neither layout exists, and directional cost is an <i>agent</i> here, not a layout.

@@ -6,13 +6,13 @@
       "description": "DFS tinyMaze",
       "command": "python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs",
       "csv": [
-        "dfs_tinyMaze_20260925_130322.csv"
+        "dfs_tinyMaze_20260926_184542.csv"
       ],
       "returncode": 0,
-      "cost": 8.0,
+      "cost": 10.0,
       "nodes": 15.0,
       "seconds": 0.0,
-      "score": 502.0,
+      "score": 500.0,
       "screenshot": "screenshots/dfs_tinyMaze.png"
     },
     {
@@ -21,13 +21,13 @@
       "description": "DFS mediumMaze",
       "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs",
       "csv": [
-        "dfs_mediumMaze_20260925_130322.csv"
+        "dfs_mediumMaze_20260926_184543.csv"
       ],
       "returncode": 0,
-      "cost": 244.0,
-      "nodes": 267.0,
+      "cost": 130.0,
+      "nodes": 146.0,
       "seconds": 0.0,
-      "score": 266.0,
+      "score": 380.0,
       "screenshot": "screenshots/dfs_mediumMaze.png"
     },
     {
@@ -36,29 +36,14 @@
       "description": "DFS bigMaze",
       "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs",
       "csv": [
-        "dfs_bigMaze_20260925_130322.csv"
+        "dfs_bigMaze_20260926_184543.csv"
       ],
       "returncode": 0,
       "cost": 210.0,
-      "nodes": 519.0,
+      "nodes": 390.0,
       "seconds": 0.1,
       "score": 300.0,
       "screenshot": "screenshots/dfs_bigMaze.png"
-    },
-    {
-      "label": "dfsNESW_mediumMaze",
-      "task": "Task 1",
-      "description": "DFS N-E-S-W order mediumMaze",
-      "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=dfsNESW",
-      "csv": [
-        "dfsNESW_mediumMaze_20260925_130323.csv"
-      ],
-      "returncode": 0,
-      "cost": 244.0,
-      "nodes": 267.0,
-      "seconds": 0.0,
-      "score": 266.0,
-      "screenshot": "screenshots/dfsNESW_mediumMaze.png"
     },
     {
       "label": "bfs_mediumMaze",
@@ -66,7 +51,7 @@
       "description": "BFS mediumMaze",
       "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs",
       "csv": [
-        "bfs_mediumMaze_20260925_130324.csv"
+        "bfs_mediumMaze_20260926_184544.csv"
       ],
       "returncode": 0,
       "cost": 68.0,
@@ -81,7 +66,7 @@
       "description": "BFS bigMaze",
       "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs",
       "csv": [
-        "bfs_bigMaze_20260925_130324.csv"
+        "bfs_bigMaze_20260926_184544.csv"
       ],
       "returncode": 0,
       "cost": 210.0,
@@ -96,7 +81,7 @@
       "description": "UCS mediumMaze",
       "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs",
       "csv": [
-        "ucs_mediumMaze_20260925_130325.csv"
+        "ucs_mediumMaze_20260926_184545.csv"
       ],
       "returncode": 0,
       "cost": 68.0,
@@ -111,7 +96,7 @@
       "description": "UCS mediumMaze (substitute for mediumDenselyMaze)",
       "command": "python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs -z .5",
       "csv": [
-        "ucs_mediumMaze_zoom_20260925_130325.csv"
+        "ucs_mediumMaze_zoom_20260926_184545.csv"
       ],
       "returncode": 0,
       "cost": 68.0,
@@ -126,7 +111,7 @@
       "description": "UCS StayEastSearchAgent mediumMaze",
       "command": "python pacman.py -l mediumMaze -p StayEastSearchAgent",
       "csv": [
-        "ucs_mediumMaze_StayEastSearchAgent_20260925_130326.csv"
+        "ucs_mediumMaze_StayEastSearchAgent_20260926_184546.csv"
       ],
       "returncode": 0,
       "cost": 1.0,
@@ -141,7 +126,7 @@
       "description": "GBFS bigMaze (Manhattan)",
       "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic",
       "csv": [
-        "gbfs_bigMaze_manhattan_20260925_130326.csv"
+        "gbfs_bigMaze_manhattan_20260926_184546.csv"
       ],
       "returncode": 0,
       "cost": 210.0,
@@ -156,7 +141,7 @@
       "description": "GBFS bigMaze (Euclidean)",
       "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=euclideanHeuristic",
       "csv": [
-        "gbfs_bigMaze_euclidean_20260925_130327.csv"
+        "gbfs_bigMaze_euclidean_20260926_184547.csv"
       ],
       "returncode": 0,
       "cost": 210.0,
@@ -171,7 +156,7 @@
       "description": "A* bigMaze (null heuristic)",
       "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=nullHeuristic",
       "csv": [
-        "astar_bigMaze_null_20260925_130327.csv"
+        "astar_bigMaze_null_20260926_184548.csv"
       ],
       "returncode": 0,
       "cost": 210.0,
@@ -186,7 +171,7 @@
       "description": "A* bigMaze (Manhattan)",
       "command": "python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic",
       "csv": [
-        "astar_bigMaze_manhattan_20260925_130328.csv"
+        "astar_bigMaze_manhattan_20260926_184548.csv"
       ],
       "returncode": 0,
       "cost": 210.0,
@@ -201,7 +186,7 @@
       "description": "BFS CornersProblem tinyCorners",
       "command": "python pacman.py -l tinyCorners -p SearchAgent -a fn=bfs,prob=CornersProblem",
       "csv": [
-        "bfs_tinyCorners_20260925_130328.csv"
+        "bfs_tinyCorners_20260926_184549.csv"
       ],
       "returncode": 0,
       "cost": 28.0,
@@ -216,7 +201,7 @@
       "description": "A* corners mediumCorners",
       "command": "python pacman.py -l mediumCorners -p AStarCornersAgent -z .5",
       "csv": [
-        "astar_mediumCorners_20260925_130329.csv"
+        "astar_mediumCorners_20260926_184549.csv"
       ],
       "returncode": 0,
       "cost": 106.0,
@@ -231,7 +216,7 @@
       "description": "A* food trickySearch",
       "command": "python pacman.py -l trickySearch -p AStarFoodSearchAgent",
       "csv": [
-        "astar_trickySearch_20260925_130329.csv"
+        "astar_trickySearch_20260926_184550.csv"
       ],
       "returncode": 0,
       "cost": 60.0,
@@ -246,7 +231,7 @@
       "description": "ClosestDot bigSearch",
       "command": "python pacman.py -l bigSearch -p ClosestDotSearchAgent",
       "csv": [
-        "bfs_bigSearch_20260925_130330.csv"
+        "bfs_bigSearch_20260926_184550.csv"
       ],
       "returncode": 0,
       "cost": 350.0,
@@ -261,13 +246,13 @@
       "description": "DFS custom maze",
       "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=dfs",
       "csv": [
-        "dfs_24i3025Search_20260925_130331.csv"
+        "dfs_24i3025Search_20260926_184551.csv"
       ],
       "returncode": 0,
-      "cost": 37.0,
-      "nodes": 97.0,
+      "cost": 47.0,
+      "nodes": 47.0,
       "seconds": 0.0,
-      "score": 473.0,
+      "score": 463.0,
       "screenshot": "screenshots/custom_dfs.png"
     },
     {
@@ -276,7 +261,7 @@
       "description": "BFS custom maze",
       "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=bfs",
       "csv": [
-        "bfs_24i3025Search_20260925_130331.csv"
+        "bfs_24i3025Search_20260926_184551.csv"
       ],
       "returncode": 0,
       "cost": 37.0,
@@ -291,7 +276,7 @@
       "description": "UCS custom maze",
       "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=ucs",
       "csv": [
-        "ucs_24i3025Search_20260925_130332.csv"
+        "ucs_24i3025Search_20260926_184552.csv"
       ],
       "returncode": 0,
       "cost": 37.0,
@@ -306,7 +291,7 @@
       "description": "GBFS custom maze",
       "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic",
       "csv": [
-        "gbfs_24i3025Search_20260925_130332.csv"
+        "gbfs_24i3025Search_20260926_184552.csv"
       ],
       "returncode": 0,
       "cost": 47.0,
@@ -321,7 +306,7 @@
       "description": "A* custom maze",
       "command": "python pacman.py -l 24i3025Search -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic",
       "csv": [
-        "astar_24i3025Search_20260925_130333.csv"
+        "astar_24i3025Search_20260926_184553.csv"
       ],
       "returncode": 0,
       "cost": 37.0,
@@ -353,7 +338,7 @@
     "questions": [
       {
         "q": "q1",
-        "got": 0.0,
+        "got": 3.0,
         "max": 3.0
       },
       {
@@ -393,7 +378,7 @@
       }
     ],
     "total": [
-      23.0,
+      26.0,
       25.0
     ]
   }

@@ -17,7 +17,7 @@ Five search algorithms, two multi-goal problems, an automatic CSV trace for ever
 
 | Task | Where | Notes |
 |:---|:---|:---|
-| **DFS** | `search.py` | LIFO `util.Stack`, explicit explored set. `fn=dfs` and `fn=dfsNESW` enforce the PDF's North-East-South-West order without changing `PositionSearchProblem`. |
+| **DFS** | `search.py` | LIFO `util.Stack`, explicit explored set. Successors are expanded in the order `getSuccessors` returns them (N, S, E, W), which the autograder q1 reference solutions require. |
 | **BFS** | `search.py` | FIFO `util.Queue`; a state is enqueued at most once, so paths are shortest on unit costs. |
 | **UCS** | `search.py` | `util.PriorityQueue` ordered by g(n); `update` lowers the priority of a state already on the fringe. |
 | **GBFS** | `search.py` | Ordered by h(n) only; `gbfs` / `greedyBestFirstSearch`; heuristic passed on the command line. |
@@ -97,7 +97,7 @@ python autograder.py -q q7          # one question
 
 | Task | Commands |
 |:---|:---|
-| 1 DFS | `python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=dfsNESW` |
+| 1 DFS | `python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs` |
 | 2 BFS | `python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs` |
 | 3 UCS | `python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs -z .5`<br>`python pacman.py -l mediumMaze -p StayEastSearchAgent` |
 | 4 GBFS | `python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=euclideanHeuristic` |
@@ -135,7 +135,7 @@ Handled without editing any forbidden file. Full detail is in `tickets.md` secti
 
 1. **CSV logging vs. forbidden files.** The logger lives in `search.py`, so no forbidden file changes.
 2. **GBFS has no stub and no autograder question.** `gbfs` / `greedyBestFirstSearch` was added to `search.py`; `SearchAgent` finds it with `getattr`. It is covered by our own tests instead.
-3. **N-E-S-W order.** `PositionSearchProblem.getSuccessors` (untouchable) returns N, S, E, W, but Task 1 mandates N, E, S, W. `search.py` reorders DFS successors; both `fn=dfs` and `fn=dfsNESW` follow the PDF. The supplied q1 fixture assumes the conflicting natural order and is not edited.
+3. **N-E-S-W order.** Task 1 names N, E, S, W, but `PositionSearchProblem.getSuccessors` (untouchable) returns N, S, E, W and the q1 reference solutions are generated from it. Per the teacher, all autograder tests must pass, so `depthFirstSearch` uses the `getSuccessors` order (no reordering). No other algorithm reorders successors.
 4. **Two UCS commands cannot run.** `mediumDenselyMaze` and `stayEastSearch` are not layouts. Substitutes: `-l mediumMaze ... fn=ucs -z .5` and `-l mediumMaze -p StayEastSearchAgent`.
 5. **Layout name.** Step 2 says `Search.lay`, Section 4 says `[YourID]Search.lay`; we use `24i3025Search.lay`. The goal sits at (1, 1) because `SearchAgent` uses that default goal.
 6. **CSV schema for uninformed search.** `h = 0`, `f = g` so all files share the same columns.

@@ -28,8 +28,6 @@ EXPERIMENTS = [
     ('dfs_tinyMaze', 'Task 1', 'DFS tinyMaze', '-l tinyMaze -p SearchAgent -a fn=dfs'),
     ('dfs_mediumMaze', 'Task 1', 'DFS mediumMaze', '-l mediumMaze -p SearchAgent -a fn=dfs'),
     ('dfs_bigMaze', 'Task 1', 'DFS bigMaze', '-l bigMaze -z .5 -p SearchAgent -a fn=dfs'),
-    ('dfsNESW_mediumMaze', 'Task 1', 'DFS N-E-S-W order mediumMaze',
-     '-l mediumMaze -p SearchAgent -a fn=dfsNESW'),
     ('bfs_mediumMaze', 'Task 2', 'BFS mediumMaze', '-l mediumMaze -p SearchAgent -a fn=bfs'),
     ('bfs_bigMaze', 'Task 2', 'BFS bigMaze', '-l bigMaze -z .5 -p SearchAgent -a fn=bfs'),
     ('ucs_mediumMaze', 'Task 3', 'UCS mediumMaze', '-l mediumMaze -p SearchAgent -a fn=ucs'),

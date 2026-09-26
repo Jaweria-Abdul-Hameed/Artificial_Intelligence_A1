@@ -31,7 +31,6 @@ RUN COMMANDS  (run from this folder)
     python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs
     python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs
     python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs
-    python pacman.py -l mediumMaze -p SearchAgent -a fn=dfsNESW      (descriptive alias)
   Task 2  BFS
     python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs
     python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs
@@ -73,8 +72,7 @@ CSV TRACE LOGGING
   SEARCH_LOG=0 to switch it off, SEARCH_LOG_DIR=<folder> to redirect it, or
   SEARCH_LOG_TAG=<label> to insert a label into the file name.
   The explored column lists every state expanded so far, so a file grows with the
-  square of the run length (mediumCorners is about 6.6 MB).  fn=dfsNESW logs as
-  dfsNESW_<layout>_<timestamp>.csv.
+  square of the run length (mediumCorners is about 6.6 MB).
   ClosestDotSearchAgent runs one BFS per dot; all of them are appended to a
   single CSV (iteration keeps counting up across the sub-searches).
 
@@ -83,10 +81,11 @@ NOTES ON PDF vs. STARTER-CODE DISCREPANCIES (all handled without editing any for
      logger lives entirely in search.py.
   2. There is no GBFS stub or autograder question in the starter code.  gbfs /
      greedyBestFirstSearch was added to search.py (SearchAgent finds it via getattr).
-  3. PositionSearchProblem.getSuccessors (untouchable) returns N,S,E,W, but Task 1
-     asks for N,E,S,W. The reorder happens inside search.py for fn=dfs and
-     fn=dfsNESW. The starter q1 path fixture expects a different route; protected
-     code and test fixtures remain unchanged as directed by the teacher.
+  3. Task 1 names the order N,E,S,W, but PositionSearchProblem.getSuccessors
+     (untouchable) returns N,S,E,W and the autograder q1 reference solutions
+     are generated from that order. Per the teacher, all tests must pass, so
+     depthFirstSearch pushes successors in the order getSuccessors returns them.
+     No other algorithm reorders successors.
   4. Two UCS example commands reference layouts that do not exist
      (mediumDenselyMaze, stayEastSearch).  Substituted: "-l mediumMaze ... fn=ucs -z .5"
      and "-l mediumMaze -p StayEastSearchAgent".
