@@ -1,0 +1,7 @@
+iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
+1,A,,,"[B1 via 0:A->B1, C via 1:A->C, B2 via 2:A->B2]",[A],"[B2, C, B1]",[],0,0,0
+2,B2,A,2:A->B2,[C via 0:B2->C],"[B2, C, B1]","[C, C, B1]",[A],4.0,0,4.0
+3,C,B2,0:B2->C,[D via 0:C->D],"[C, C, B1]","[D, C, B1]","[A, B2]",20.0,0,20.0
+4,D,C,0:C->D,"[E1 via 0:D->E1, F via 1:D->F, E2 via 2:D->E2]","[D, C, B1]","[E2, F, E1, C, B1]","[A, B2, C]",52.0,0,52.0
+5,E2,D,2:D->E2,[F via 0:E2->F],"[E2, F, E1, C, B1]","[F, F, E1, C, B1]","[A, B2, C, D]",308.0,0,308.0
+6,F,E2,0:E2->F,[G via 0:F->G],"[F, F, E1, C, B1]","[G, F, E1, C, B1]","[A, B2, C, D, E2]",1332.0,0,1332.0

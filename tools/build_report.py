@@ -151,10 +151,11 @@ BODY = """
  <p>Only <code>search.py</code>, <code>searchAgents.py</code> and the new layout were edited. Every algorithm is written
  inside its own provided function, with no helper delegation, and expands successors in the order
  <code>getSuccessors</code> returns them. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
- <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state with the columns
+ <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state (a state whose successors were generated) with the columns
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
  The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
- GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.</div>
+ GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.
+ The goal that ends a search is selected, not expanded, so it has no row: the row count equals the run's <i>Search nodes expanded</i>.</div>
  <div class="csv">%(csvsample)s</div>
 </section>
 
@@ -171,8 +172,10 @@ BODY = """
   <tr><td>GBFS</td><td>PriorityQueue</td><td>h(n)</td><td class="num">O(b<sup>m</sup>)</td><td class="num">O(b<sup>m</sup>)</td><td>yes (finite, seen set)</td><td><span class="pill bad">no</span></td></tr>
   <tr><td>A*</td><td>PriorityQueue</td><td>g(n) + h(n)</td><td class="num">O(b<sup>d</sup>) good h</td><td class="num">O(b<sup>d</sup>)</td><td>yes</td><td><span class="pill ok">h admissible</span></td></tr>
  </table>
- <p>In a grid maze every bound is also capped by the number of cells: with a binary heap each expansion costs
- O(log |S|), so UCS and A* run in O(|E| log |S|), and DFS and BFS in O(|S|). Each fringe entry stores its action list, so a
+ <p>In a grid maze every bound is also capped by the number of cells, so DFS and BFS run in O(|S|). Heap <code>push</code> and
+ <code>pop</code> cost O(log |S|), but the supplied <code>util.PriorityQueue.update</code> scans the heap for the item and
+ re-heapifies, which is O(|F|) for a frontier of size |F| &le; |S|. UCS and A* therefore cost O(|E| &middot; |S|) in the worst case with
+ this queue; an indexed heap would give the textbook O(|E| log |S|). Each fringe entry stores its action list, so a
  run also pays O(|S| &middot; L) memory for paths of length L. That is the price of keeping every algorithm inside one small
  function and it is negligible at maze sizes.</p>
  <h3>Implementation notes</h3>
@@ -274,7 +277,7 @@ BODY = """
 <section class="page">
  <h2>5 &middot; Custom maze: the greedy trap</h2>
  <p>The layout <code>24i3025Search.lay</code> is 26 &times; 13 cells. Pacman starts at the top right and the food is in the bottom-left corner (1, 1), where <code>SearchAgent</code> expects the goal.
- It has decision branches, four dead ends and two ways to reach the food.</p>
+ It has decision branches, five dead ends and two ways to reach the food.</p>
  <div class="two">
   <div>
    <ul>
@@ -339,7 +342,7 @@ def main():
     g = lambda k, key='cost': int(R[k][key])
     ctx = dict(
         grade=GRADE_TOTAL,
-        gradenote='q1&ndash;q8 all at full marks' if GRADE_PASSING else 'not every question at full marks',
+        gradenote='25 required points + 1 bonus point from the supplied q7 grader' if GRADE_PASSING else 'not every question at full marks',
         q7score='%g of %g' % (Q7['got'], Q7['max']),
         q7=n('astar_trickySearch'), gb=g('custom_gbfs'), **{'as': g('custom_astar')},
         ncsv=len(csvs), csvsample=html.escape(sample),

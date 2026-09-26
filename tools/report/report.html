@@ -51,7 +51,7 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
   Jaweria Abdul Hameed (24i-3025) &middot; Mohsin Khan (24i-3135)</div>
  </div>
  <div class="stats">
-  <div class="stat"><b>26/25</b><span>autograder points, q1&ndash;q8 all at full marks</span></div>
+  <div class="stat"><b>26/25</b><span>autograder points, 25 required points + 1 bonus point from the supplied q7 grader</span></div>
   <div class="stat"><b>255</b><span>nodes expanded by A* on trickySearch (top threshold: 7000)</span></div>
   <div class="stat"><b>47 vs 37</b><span>path length, GBFS vs A* on the custom maze</span></div>
   <div class="stat"><b>52</b><span>CSV traces in evidence/</span></div>
@@ -69,11 +69,12 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
  <p>Only <code>search.py</code>, <code>searchAgents.py</code> and the new layout were edited. Every algorithm is written
  inside its own provided function, with no helper delegation, and expands successors in the order
  <code>getSuccessors</code> returns them. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
- <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state with the columns
+ <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state (a state whose successors were generated) with the columns
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
  The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
- GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.</div>
- <div class="csv">evidence/astar_24i3025Search_20260926_185733.csv
+ GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.
+ The goal that ends a search is selected, not expanded, so it has no row: the row count equals the run's <i>Search nodes expanded</i>.</div>
+ <div class="csv">evidence/astar_24i3025Search_20260926_205918.csv
 iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
 1,(23, 6),,,[(23, 7) via North, (22, 6) via West],[(23, 6):27],[(22, 6):27, (23, 7):29],[],0,27,27
 2,(22, 6),(23, 6),West,[(21, 6) via West],[(22, 6):27, (23, 7):29],[(21, 6):27, (23, 7):29],[(23, 6)],1,26,27
@@ -93,8 +94,10 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
   <tr><td>GBFS</td><td>PriorityQueue</td><td>h(n)</td><td class="num">O(b<sup>m</sup>)</td><td class="num">O(b<sup>m</sup>)</td><td>yes (finite, seen set)</td><td><span class="pill bad">no</span></td></tr>
   <tr><td>A*</td><td>PriorityQueue</td><td>g(n) + h(n)</td><td class="num">O(b<sup>d</sup>) good h</td><td class="num">O(b<sup>d</sup>)</td><td>yes</td><td><span class="pill ok">h admissible</span></td></tr>
  </table>
- <p>In a grid maze every bound is also capped by the number of cells: with a binary heap each expansion costs
- O(log |S|), so UCS and A* run in O(|E| log |S|), and DFS and BFS in O(|S|). Each fringe entry stores its action list, so a
+ <p>In a grid maze every bound is also capped by the number of cells, so DFS and BFS run in O(|S|). Heap <code>push</code> and
+ <code>pop</code> cost O(log |S|), but the supplied <code>util.PriorityQueue.update</code> scans the heap for the item and
+ re-heapifies, which is O(|F|) for a frontier of size |F| &le; |S|. UCS and A* therefore cost O(|E| &middot; |S|) in the worst case with
+ this queue; an indexed heap would give the textbook O(|E| log |S|). Each fringe entry stores its action list, so a
  run also pays O(|S| &middot; L) memory for paths of length L. That is the price of keeping every algorithm inside one small
  function and it is negligible at maze sizes.</p>
  <h3>Implementation notes</h3>
@@ -238,7 +241,7 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
 <section class="page">
  <h2>5 &middot; Custom maze: the greedy trap</h2>
  <p>The layout <code>24i3025Search.lay</code> is 26 &times; 13 cells. Pacman starts at the top right and the food is in the bottom-left corner (1, 1), where <code>SearchAgent</code> expects the goal.
- It has decision branches, four dead ends and two ways to reach the food.</p>
+ It has decision branches, five dead ends and two ways to reach the food.</p>
  <div class="two">
   <div>
    <ul>

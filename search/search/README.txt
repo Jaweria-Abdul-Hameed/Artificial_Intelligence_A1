@@ -67,8 +67,10 @@ CSV TRACE LOGGING
   with the columns:
     iteration, expanded_state, parent, action, generated_successors,
     frontier_before, frontier_after, explored, g, h, f
-  One row per expanded state.  For DFS, BFS and UCS h = 0 and f = g so every
-  file has the same schema; GBFS logs f = h (it orders by h alone).  Logging
+  One row per expanded state (the goal that ends a search is selected, not
+  expanded, so the row count equals "Search nodes expanded").  For DFS, BFS and
+  UCS h = 0 and f = g so every file has the same schema; GBFS logs f = h (it
+  orders by h alone).  Logging
   is on under pacman.py, the autograder, and imported task calls. Set
   SEARCH_LOG=0 to switch it off, SEARCH_LOG_DIR=<folder> to redirect it, or
   SEARCH_LOG_TAG=<label> to insert a label into the file name.

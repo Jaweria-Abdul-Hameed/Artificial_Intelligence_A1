@@ -68,7 +68,8 @@ def tinyMazeSearch(problem):
 # effect and never changes what a search returns (an I/O failure just switches
 # logging off with a warning).
 #
-# Rows go to evidence/<algorithm>_<layout>_<timestamp>.csv (next to search.py).
+# Rows go to evidence/<algorithm>_<layout>_<timestamp>.csv (next to search.py), one
+# per state actually expanded (the goal that ends a search is not expanded).
 # Logging is ON for every task-level algorithm execution, including the
 # autograder and imported calls.  Set SEARCH_LOG=0 to switch it off,
 # SEARCH_LOG_DIR to redirect the output folder and SEARCH_LOG_TAG to add a
@@ -207,6 +208,13 @@ class SearchLogger:
 
     def finish(self):
         """Close the CSV (call at every return point of a search)."""
+        if self.enabled and self.file is None:
+            # Nothing was expanded (start state is the goal): leave a header-only trace.
+            try:
+                self._open()
+            except Exception as err:   # logging must never break a search
+                print('[search] CSV logging disabled: %s' % err)
+                self.enabled = False
         if self.append:
             SearchLogger._appendCount[self.key] = self.iteration
         if self.file is None:
@@ -238,8 +246,8 @@ def depthFirstSearch(problem: SearchProblem):
         if currentSearchState in statesAlreadyExplored:
             continue
         if problem.isGoalState(currentSearchState):
-            executionTraceLogger.expand(
-                currentSearchState, [], frontierBeforeRemoval, frontierStack)
+            # The goal is selected, not expanded: getSuccessors is never called on it,
+            # so it gets no row and the row count equals 'Search nodes expanded'.
             executionTraceLogger.finish()
             return pathActionsSoFar
         statesAlreadyExplored.add(currentSearchState)
@@ -271,8 +279,7 @@ def breadthFirstSearch(problem: SearchProblem):
         frontierBeforeRemoval = executionTraceLogger.snapshot(frontierQueue)
         currentSearchState, pathActionsSoFar = frontierQueue.pop()
         if problem.isGoalState(currentSearchState):
-            executionTraceLogger.expand(
-                currentSearchState, [], frontierBeforeRemoval, frontierQueue)
+            # The goal is selected, not expanded, so it gets no CSV row.
             executionTraceLogger.finish()
             return pathActionsSoFar
         generatedSuccessorTriples = []
@@ -306,9 +313,7 @@ def uniformCostSearch(problem: SearchProblem):
         frontierBeforeRemoval = executionTraceLogger.snapshot(costPriorityFrontier)
         currentSearchState = costPriorityFrontier.pop()
         if problem.isGoalState(currentSearchState):
-            executionTraceLogger.expand(
-                currentSearchState, [], frontierBeforeRemoval,
-                costPriorityFrontier)
+            # The goal is selected, not expanded, so it gets no CSV row.
             executionTraceLogger.finish()
             return actionPathsByState[currentSearchState]
         statesWithFinalCost.add(currentSearchState)
@@ -360,10 +365,7 @@ def greedyBestFirstSearch(problem: SearchProblem, heuristic=nullHeuristic):
         # GBFS orders by h alone, so f(n) is logged as h(n).
         currentHeuristicValue = heuristicValuesByState[currentSearchState]
         if problem.isGoalState(currentSearchState):
-            executionTraceLogger.expand(
-                currentSearchState, [], frontierBeforeRemoval,
-                heuristicPriorityFrontier, currentHeuristicValue,
-                currentHeuristicValue)
+            # The goal is selected, not expanded, so it gets no CSV row.
             executionTraceLogger.finish()
             return actionPathsByState[currentSearchState]
         generatedSuccessorTriples = []
@@ -408,9 +410,7 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
         currentSearchState = evaluationPriorityFrontier.pop()
         currentHeuristicValue = heuristicValuesByState[currentSearchState]
         if problem.isGoalState(currentSearchState):
-            executionTraceLogger.expand(
-                currentSearchState, [], frontierBeforeRemoval,
-                evaluationPriorityFrontier, currentHeuristicValue)
+            # The goal is selected, not expanded, so it gets no CSV row.
             executionTraceLogger.finish()
             return actionPathsByState[currentSearchState]
         generatedSuccessorTriples = []
