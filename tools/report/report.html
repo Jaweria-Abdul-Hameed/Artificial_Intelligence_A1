@@ -54,7 +54,7 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
   <div class="stat"><b>26/25</b><span>autograder points, q1&ndash;q8 all at full marks</span></div>
   <div class="stat"><b>255</b><span>nodes expanded by A* on trickySearch (top threshold: 7000)</span></div>
   <div class="stat"><b>47 vs 37</b><span>path length, GBFS vs A* on the custom maze</span></div>
-  <div class="stat"><b>51</b><span>CSV traces in evidence/</span></div>
+  <div class="stat"><b>52</b><span>CSV traces in evidence/</span></div>
  </div>
  <h3>What is in this report</h3>
  <ul>
@@ -74,7 +74,7 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
  The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
  GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.</div>
- <div class="csv">evidence/astar_24i3025Search_20260926_184553.csv
+ <div class="csv">evidence/astar_24i3025Search_20260926_185333.csv
 iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
 1,(23, 6),,,[(23, 7) via North, (22, 6) via West],[(23, 6):27],[(22, 6):27, (23, 7):29],[],0,27,27
 2,(22, 6),(23, 6),West,[(21, 6) via West],[(22, 6):27, (23, 7):29],[(21, 6):27, (23, 7):29],[(23, 6)],1,26,27
@@ -192,11 +192,12 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
   <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
   <tr><td>DFS tinyMaze</td><td class="num">10</td><td class="num">15</td><td class="num">0.00</td></tr>
 <tr><td>DFS mediumMaze</td><td class="num">130</td><td class="num">146</td><td class="num">0.00</td></tr>
-<tr><td>DFS bigMaze</td><td class="num">210</td><td class="num">390</td><td class="num">0.10</td></tr>
+<tr><td>DFS bigMaze</td><td class="num">210</td><td class="num">390</td><td class="num">0.00</td></tr>
 <tr><td>BFS mediumMaze</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
 <tr><td>BFS bigMaze</td><td class="num">210</td><td class="num">620</td><td class="num">0.10</td></tr>
 <tr><td>UCS mediumMaze</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
-<tr><td>UCS mediumMaze (substitute for mediumDenselyMaze)</td><td class="num">68</td><td class="num">269</td><td class="num">0.00</td></tr>
+<tr><td>UCS mediumDenselyMaze (added layout)</td><td class="num">54</td><td class="num">173</td><td class="num">0.00</td></tr>
+<tr><td>UCS stayEastSearch (added layout)</td><td class="num">23</td><td class="num">54</td><td class="num">0.00</td></tr>
 <tr><td>UCS StayEastSearchAgent mediumMaze</td><td class="num">1</td><td class="num">260</td><td class="num">0.00</td></tr>
 <tr><td>GBFS bigMaze (Manhattan)</td><td class="num">210</td><td class="num">466</td><td class="num">0.00</td></tr>
 <tr><td>GBFS bigMaze (Euclidean)</td><td class="num">210</td><td class="num">471</td><td class="num">0.10</td></tr>
@@ -311,17 +312,11 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
  <div class="two">
   <figure class=""><img src="../../search/search/evidence/screenshots/dfs_mediumMaze.png"><figcaption>fn=dfs (mandatory N-E-S-W): cost 130, 146 nodes.</figcaption></figure>
  </div>
- <h3>B. Two UCS example commands that cannot run (Inconsistency #4)</h3>
- <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>. Neither layout exists, and directional cost is an <i>agent</i> here, not a layout.
- The literal commands fail exactly like this:</p>
- <div class="csv">$ python pacman.py -l mediumDenselyMaze -p SearchAgent -a fn=ucs
-Exception: The layout mediumDenselyMaze cannot be found
-$ python pacman.py -l stayEastSearch -p SearchAgent -a fn=ucs
-Exception: The layout stayEastSearch cannot be found</div>
- <p>Substitutes used: <code>-l mediumMaze -p SearchAgent -a fn=ucs -z .5</code> and <code>-l mediumMaze -p StayEastSearchAgent</code>.</p>
+ <h3>B. Two UCS layouts added (Inconsistency #4)</h3>
+ <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>, but neither layout ships with the starter code, so both were created in <code>layouts/</code> and the literal commands now run. <code>mediumDenselyMaze</code> is a dense corridor maze (UCS cost 54); <code>stayEastSearch</code> is a two-route maze (cost 23). Directional cost is still an <i>agent</i>, so <code>-l mediumMaze -p StayEastSearchAgent</code> is also kept (cost 1).</p>
  <div class="two">
-  <figure class=""><img src="../../search/search/evidence/screenshots/ucs_mediumMaze_z.png"><figcaption>Substitute 1: mediumMaze, fn=ucs, -z .5.</figcaption></figure>
-  <figure class=""><img src="../../search/search/evidence/screenshots/ucs_stayEast.png"><figcaption>Substitute 2: StayEastSearchAgent, cost 1.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/ucs_mediumDenselyMaze.png"><figcaption>mediumDenselyMaze, fn=ucs.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/ucs_stayEastSearch.png"><figcaption>stayEastSearch, fn=ucs, cost 23.</figcaption></figure>
  </div>
  <h3>C. Smaller notes</h3>
  <ul>

@@ -29,7 +29,7 @@ Five search algorithms, two multi-goal problems, an automatic CSV trace for ever
 | **AnyFoodSearchProblem / ClosestDotSearchAgent** | `searchAgents.py` | Goal test is "standing on food"; BFS finds the nearest dot. |
 | **Custom maze** | `layouts/24i3025Search.lay` | Branches, dead ends and a serpentine decoy; GBFS returns 47 steps, A\* returns 37. |
 
-Every algorithm is written directly inside its own provided function. The one exception is `depthFirstSearch`, which delegates to `_depthFirstSearch` to enforce the mandatory N-E-S-W order.
+Every algorithm is written directly inside its own provided function, with no helper delegation, and expands successors in `getSuccessors` order.
 
 Only `search.py`, `searchAgents.py` and the new layout were edited. `pacman.py`, `game.py`, `util.py`, `layout.py`, `graphicsDisplay.py`, `graphicsUtils.py` and `textDisplay.py` are byte-identical to the starter code, the `SearchAgent`, `PositionSearchProblem` and `FoodSearchProblem` classes are unchanged, and all 7 `# DO NOT CHANGE` lines are intact.
 
@@ -99,7 +99,7 @@ python autograder.py -q q7          # one question
 |:---|:---|
 | 1 DFS | `python pacman.py -l tinyMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=dfs`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=dfs` |
 | 2 BFS | `python pacman.py -l mediumMaze -p SearchAgent -a fn=bfs`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs` |
-| 3 UCS | `python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs`<br>`python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs -z .5`<br>`python pacman.py -l mediumMaze -p StayEastSearchAgent` |
+| 3 UCS | `python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs`<br>`python pacman.py -l mediumDenselyMaze -p SearchAgent -a fn=ucs`<br>`python pacman.py -l stayEastSearch -p SearchAgent -a fn=ucs`<br>`python pacman.py -l mediumMaze -p StayEastSearchAgent` |
 | 4 GBFS | `python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=manhattanHeuristic`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=gbfs,heuristic=euclideanHeuristic` |
 | 5 A\* | `python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=nullHeuristic`<br>`python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic` |
 | 6 Corners | `python pacman.py -l tinyCorners -p SearchAgent -a fn=bfs,prob=CornersProblem`<br>`python pacman.py -l mediumCorners -p AStarCornersAgent -z .5` |
@@ -136,7 +136,7 @@ Handled without editing any forbidden file. Full detail is in `tickets.md` secti
 1. **CSV logging vs. forbidden files.** The logger lives in `search.py`, so no forbidden file changes.
 2. **GBFS has no stub and no autograder question.** `gbfs` / `greedyBestFirstSearch` was added to `search.py`; `SearchAgent` finds it with `getattr`. It is covered by our own tests instead.
 3. **N-E-S-W order.** Task 1 names N, E, S, W, but `PositionSearchProblem.getSuccessors` (untouchable) returns N, S, E, W and the q1 reference solutions are generated from it. Per the teacher, all autograder tests must pass, so `depthFirstSearch` uses the `getSuccessors` order (no reordering). No other algorithm reorders successors.
-4. **Two UCS commands cannot run.** `mediumDenselyMaze` and `stayEastSearch` are not layouts. Substitutes: `-l mediumMaze ... fn=ucs -z .5` and `-l mediumMaze -p StayEastSearchAgent`.
+4. **Two UCS layouts were missing.** `mediumDenselyMaze` and `stayEastSearch` do not ship with the starter code, so both were created in `layouts/` and the PDF commands run as written. `-l mediumMaze -p StayEastSearchAgent` is kept as well.
 5. **Layout name.** Step 2 says `Search.lay`, Section 4 says `[YourID]Search.lay`; we use `24i3025Search.lay`. The goal sits at (1, 1) because `SearchAgent` uses that default goal.
 6. **CSV schema for uninformed search.** `h = 0`, `f = g` so all files share the same columns.
 7. **Two-person group.** Both members are named in the READMEs and the report; the layout uses the first ID.

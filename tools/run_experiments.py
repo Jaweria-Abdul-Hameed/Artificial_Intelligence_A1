@@ -31,8 +31,10 @@ EXPERIMENTS = [
     ('bfs_mediumMaze', 'Task 2', 'BFS mediumMaze', '-l mediumMaze -p SearchAgent -a fn=bfs'),
     ('bfs_bigMaze', 'Task 2', 'BFS bigMaze', '-l bigMaze -z .5 -p SearchAgent -a fn=bfs'),
     ('ucs_mediumMaze', 'Task 3', 'UCS mediumMaze', '-l mediumMaze -p SearchAgent -a fn=ucs'),
-    ('ucs_mediumMaze_z', 'Task 3', 'UCS mediumMaze (substitute for mediumDenselyMaze)',
-     '-l mediumMaze -p SearchAgent -a fn=ucs -z .5'),
+    ('ucs_mediumDenselyMaze', 'Task 3', 'UCS mediumDenselyMaze (added layout)',
+     '-l mediumDenselyMaze -p SearchAgent -a fn=ucs'),
+    ('ucs_stayEastSearch', 'Task 3', 'UCS stayEastSearch (added layout)',
+     '-l stayEastSearch -p SearchAgent -a fn=ucs'),
     ('ucs_stayEast', 'Task 3', 'UCS StayEastSearchAgent mediumMaze',
      '-l mediumMaze -p StayEastSearchAgent'),
     ('gbfs_bigMaze', 'Task 4', 'GBFS bigMaze (Manhattan)',
@@ -60,15 +62,12 @@ EXPERIMENTS = [
 ]
 
 # File-name label for runs that would otherwise share algorithm + layout
-TAGS = {'ucs_mediumMaze_z': 'zoom', 'ucs_stayEast': 'StayEastSearchAgent',
+TAGS = {'ucs_stayEast': 'StayEastSearchAgent',
         'gbfs_bigMaze': 'manhattan', 'gbfs_bigMaze_euclid': 'euclidean',
         'astar_bigMaze': 'manhattan', 'astar_bigMaze_null': 'null'}
 
-# Literal PDF commands that reference files that do not exist (Inconsistency #4).
-BROKEN = [
-    ('pdf_mediumDenselyMaze', '-l mediumDenselyMaze -p SearchAgent -a fn=ucs'),
-    ('pdf_stayEastSearch', '-l stayEastSearch -p SearchAgent -a fn=ucs'),
-]
+# Commands that are expected to fail (none now that both UCS layouts exist).
+BROKEN = []
 
 
 def run(args, timeout=600, tag=''):

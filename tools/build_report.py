@@ -313,11 +313,8 @@ BODY = """
  <div class="two">
   %(fig_dfs)s
  </div>
- <h3>B. Two UCS example commands that cannot run (Inconsistency #4)</h3>
- <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>. Neither layout exists, and directional cost is an <i>agent</i> here, not a layout.
- The literal commands fail exactly like this:</p>
- <div class="csv">%(broken)s</div>
- <p>Substitutes used: <code>-l mediumMaze -p SearchAgent -a fn=ucs -z .5</code> and <code>-l mediumMaze -p StayEastSearchAgent</code>.</p>
+ <h3>B. Two UCS layouts added (Inconsistency #4)</h3>
+ <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>, but neither layout ships with the starter code, so both were created in <code>layouts/</code> and the literal commands now run. <code>mediumDenselyMaze</code> is a dense corridor maze (UCS cost %(dense)s); <code>stayEastSearch</code> is a two-route maze (cost %(stayl)s). Directional cost is still an <i>agent</i>, so <code>-l mediumMaze -p StayEastSearchAgent</code> is also kept (cost %(stay)s).</p>
  <div class="two">
   %(fig_ucsz)s
   %(fig_stay)s
@@ -354,7 +351,7 @@ def main():
         fig_corners=fig('astar_mediumCorners', 'A* with cornersHeuristic on mediumCorners: %s nodes, cost %s.' % (n('astar_mediumCorners'), n('astar_mediumCorners', 'cost'))),
         rows_std=table_rows([l for l in R if not l.startswith('custom')]),
         rows_custom=table_rows([l for l in R if l.startswith('custom')]),
-        stay=n('ucs_stayEast', 'cost'), astar_m=n('astar_bigMaze'), astar_n=n('astar_bigMaze_null'),
+        stay=n('ucs_stayEast', 'cost'), dense=n('ucs_mediumDenselyMaze', 'cost'), stayl=n('ucs_stayEastSearch', 'cost'), astar_m=n('astar_bigMaze'), astar_n=n('astar_bigMaze_null'),
         gbfs_n=n('gbfs_bigMaze'), dfs_medium_cost=n('dfs_mediumMaze', 'cost'),
         chart_corner=bars([('CornersProblem BFS (tiny)', g('bfs_tinyCorners', 'nodes')),
                            ('Corners A* (medium)', g('astar_mediumCorners', 'nodes')),
@@ -369,9 +366,8 @@ def main():
         extra=g('custom_gbfs') - g('custom_astar'),
         pct=round(100.0 * (g('custom_gbfs') - g('custom_astar')) / g('custom_astar')),
         fig_dfs=fig('dfs_mediumMaze', 'fn=dfs (mandatory N-E-S-W): cost %s, %s nodes.' % (n('dfs_mediumMaze', 'cost'), n('dfs_mediumMaze'))),
-        fig_ucsz=fig('ucs_mediumMaze_z', 'Substitute 1: mediumMaze, fn=ucs, -z .5.'),
-        fig_stay=fig('ucs_stayEast', 'Substitute 2: StayEastSearchAgent, cost %s.' % n('ucs_stayEast', 'cost')),
-        broken=html.escape('\n'.join('$ %s\n%s' % (b['command'], ' '.join(b['message'])) for b in BROKEN.values())),
+        fig_ucsz=fig('ucs_mediumDenselyMaze', 'mediumDenselyMaze, fn=ucs.'),
+        fig_stay=fig('ucs_stayEastSearch', 'stayEastSearch, fn=ucs, cost %s.' % n('ucs_stayEastSearch', 'cost')),
     )
     page = ('<!doctype html><html><head><meta charset="utf-8"><title>Teaching Pacman to search</title>'
             '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700'

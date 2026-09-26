@@ -22,9 +22,8 @@ WHAT WAS EDITED / ADDED
   Every other starter file (pacman.py, game.py, util.py, layout.py,
   graphicsDisplay.py, graphicsUtils.py, textDisplay.py, ...) is unmodified.
 
-  Every algorithm is written directly inside its own provided function.  The
-  one deliberate exception is depthFirstSearch, which delegates to the helper
-  _depthFirstSearch to enforce North-East-South-West without touching protected code.
+  Every algorithm is written directly inside its own provided function, with no
+  helper delegation, and expands successors in the order getSuccessors returns them.
 
 RUN COMMANDS  (run from this folder)
   Task 1  DFS
@@ -36,6 +35,8 @@ RUN COMMANDS  (run from this folder)
     python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=bfs
   Task 3  UCS
     python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs
+    python pacman.py -l mediumDenselyMaze -p SearchAgent -a fn=ucs
+    python pacman.py -l stayEastSearch -p SearchAgent -a fn=ucs
     python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs -z .5
     python pacman.py -l mediumMaze -p StayEastSearchAgent
   Task 4  GBFS
@@ -86,9 +87,9 @@ NOTES ON PDF vs. STARTER-CODE DISCREPANCIES (all handled without editing any for
      are generated from that order. Per the teacher, all tests must pass, so
      depthFirstSearch pushes successors in the order getSuccessors returns them.
      No other algorithm reorders successors.
-  4. Two UCS example commands reference layouts that do not exist
-     (mediumDenselyMaze, stayEastSearch).  Substituted: "-l mediumMaze ... fn=ucs -z .5"
-     and "-l mediumMaze -p StayEastSearchAgent".
+  4. Two UCS example commands reference layouts that the starter code does not
+     ship (mediumDenselyMaze, stayEastSearch).  Both were created in layouts/, so
+     the PDF commands run as written.  "-l mediumMaze -p StayEastSearchAgent" is kept too.
   5. The custom layout is named 24i3025Search.lay (Section 4 / Section 5 naming);
      Step 2 of the PDF says just "Search.lay".
   6. DFS/BFS/UCS have no heuristic, so their CSV rows use h = 0, f = g.

@@ -43,7 +43,7 @@ def main():
         proj = os.path.join(tmp, TOP)
         bad = [n for n in names if os.path.basename(n) in EXCLUDE_FILES or '__pycache__' in n]
         print('excluded files present:', bad or 'none')
-        for need in ['search.py', 'searchAgents.py', 'README.txt', 'report.pdf', 'layouts/24i3025Search.lay',
+        for need in ['search.py', 'searchAgents.py', 'README.txt', 'report.pdf', 'layouts/24i3025Search.lay', 'layouts/mediumDenselyMaze.lay', 'layouts/stayEastSearch.lay',
                      'pacman.py', 'game.py', 'util.py', 'layout.py', 'autograder.py']:
             assert os.path.exists(os.path.join(proj, need)), need
         print('csv files:', sum(n.startswith(TOP + '/evidence/') and n.endswith('.csv') for n in names),
