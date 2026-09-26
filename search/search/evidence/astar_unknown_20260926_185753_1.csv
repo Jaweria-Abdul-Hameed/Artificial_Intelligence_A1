@@ -1,0 +1,6 @@
+iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
+1,S,,,"[A via 0, B via 1, D via 2]",[S:6.0],"[A:4.5, D:6.0625, B:8.25]",[],0,6.0,6.0
+2,A,S,0,[C via 0],"[A:4.5, D:6.0625, B:8.25]","[D:6.0625, C:6.125, B:8.25]",[S],2.0,2.5,4.5
+3,D,S,2,[G via 2],"[D:6.0625, C:6.125, B:8.25]","[C:6.125, B:8.25, G:10.0]","[S, A]",5.0,1.0625,6.0625
+4,C,A,0,[G via 2],"[C:6.125, B:8.25, G:10.0]","[G:7.0, B:8.25]","[S, A, D]",5.0,1.125,6.125
+5,G,C,2,[],"[G:7.0, B:8.25]",[B:8.25],"[S, A, D, C]",7.0,0.0,7.0

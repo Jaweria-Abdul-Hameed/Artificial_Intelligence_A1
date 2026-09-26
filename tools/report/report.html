@@ -67,14 +67,13 @@ ul{margin:0 0 2.6mm;padding-left:5mm}li{margin-bottom:1mm}
  </ul>
  <h3>Design rules followed</h3>
  <p>Only <code>search.py</code>, <code>searchAgents.py</code> and the new layout were edited. Every algorithm is written
- inside its own provided function; the single exception is <code>depthFirstSearch</code>, which calls the helper
- <code>_depthFirstSearch</code> so the mandatory North-East-South-West order is enforced without touching
- <code>PositionSearchProblem</code>. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
+ inside its own provided function, with no helper delegation, and expands successors in the order
+ <code>getSuccessors</code> returns them. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
  <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state with the columns
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
  The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
  GBFS logs <code>f = h</code> because it orders by <code>h</code> alone.</div>
- <div class="csv">evidence/astar_24i3025Search_20260926_185333.csv
+ <div class="csv">evidence/astar_24i3025Search_20260926_185733.csv
 iteration,expanded_state,parent,action,generated_successors,frontier_before,frontier_after,explored,g,h,f
 1,(23, 6),,,[(23, 7) via North, (22, 6) via West],[(23, 6):27],[(22, 6):27, (23, 7):29],[],0,27,27
 2,(22, 6),(23, 6),West,[(21, 6) via West],[(22, 6):27, (23, 7):29],[(21, 6):27, (23, 7):29],[(23, 6)],1,26,27
@@ -100,7 +99,7 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
  function and it is negligible at maze sizes.</p>
  <h3>Implementation notes</h3>
  <ul>
-  <li><b>DFS</b> marks a state explored when it is popped, skips stale duplicates, and always pushes reordered successors in reverse so the mandatory N&ndash;E&ndash;S&ndash;W order is expanded correctly by the LIFO stack.</li>
+  <li><b>DFS</b> marks a state explored when it is popped, skips stale duplicates, and pushes successors in <code>getSuccessors</code> order (N, S, E, W), so the LIFO stack expands West first.</li>
   <li><b>BFS</b> checks a <i>seen</i> set before pushing, so a state enters the queue once. That keeps the first path found the shortest.</li>
   <li><b>UCS</b> queues the bare state and calls <code>PriorityQueue.update</code>, so a cheaper path to a state already in the fringe lowers its priority instead of adding a duplicate. Costs and paths live in dictionaries.</li>
   <li><b>GBFS</b> orders by <code>h</code> only. A state's priority never changes, so it is queued once. The heuristic is passed as <code>heuristic=name</code> on the command line through the unchanged <code>SearchAgent</code>.</li>
@@ -294,7 +293,7 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
   <figure class=""><img src="../../search/search/evidence/screenshots/custom_astar.png"><figcaption>A*: takes the top edge, cost 37, 84 nodes.</figcaption></figure>
  </div>
  <div class="callout">GBFS expands 54 nodes and A* 84, so greedy is cheaper to run, but its path is 10 steps (27%) longer. BFS and UCS find the same optimum as A*
- with 88 nodes. PDF-ordered DFS also reaches the optimal cost 47, while expanding 47 nodes.</div>
+ with 88 nodes. DFS is not optimal here: it finds a path of cost 47 (same as GBFS) while expanding only 47 nodes.</div>
  <table>
   <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
   <tr><td>DFS custom maze</td><td class="num">47</td><td class="num">47</td><td class="num">0.00</td></tr>
@@ -310,7 +309,7 @@ iteration,expanded_state,parent,action,generated_successors,frontier_before,fron
  <h3>A. North-East-South-West order (Inconsistency #3)</h3>
  <p>Task 1 names N&ndash;E&ndash;S&ndash;W expansion, but the protected <code>PositionSearchProblem.getSuccessors</code> returns N, S, E, W and the autograder q1 reference solutions are generated from that order. Following the teacher instruction that all tests must pass, <code>depthFirstSearch</code> pushes successors in the order <code>getSuccessors</code> returns them, with no reordering. No other algorithm reorders successors, and no protected file or fixture was changed.</p>
  <div class="two">
-  <figure class=""><img src="../../search/search/evidence/screenshots/dfs_mediumMaze.png"><figcaption>fn=dfs (mandatory N-E-S-W): cost 130, 146 nodes.</figcaption></figure>
+  <figure class=""><img src="../../search/search/evidence/screenshots/dfs_mediumMaze.png"><figcaption>fn=dfs (getSuccessors order): cost 130, 146 nodes.</figcaption></figure>
  </div>
  <h3>B. Two UCS layouts added (Inconsistency #4)</h3>
  <p>The PDF lists <code>-l mediumDenselyMaze</code> and <code>-l stayEastSearch</code>, but neither layout ships with the starter code, so both were created in <code>layouts/</code> and the literal commands now run. <code>mediumDenselyMaze</code> is a dense corridor maze (UCS cost 54); <code>stayEastSearch</code> is a two-route maze (cost 23). Directional cost is still an <i>agent</i>, so <code>-l mediumMaze -p StayEastSearchAgent</code> is also kept (cost 1).</p>

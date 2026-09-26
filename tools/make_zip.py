@@ -16,7 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT = os.path.join(ROOT, 'search', 'search')
 OUT = os.path.join(ROOT, 'SearchProject.zip')
 TOP = 'SearchProject'
-EXCLUDE_FILES = {'test_dfs_order.py', 'test_gbfs.py', 'test_search_edges.py',
+EXCLUDE_FILES = {'test_gbfs.py', 'test_search_edges.py',
                  'test_csv_logger.py', 'graph_problem.py'}
 FORBIDDEN = ['pacman.py', 'game.py', 'util.py', 'layout.py', 'graphicsDisplay.py',
              'graphicsUtils.py', 'textDisplay.py']

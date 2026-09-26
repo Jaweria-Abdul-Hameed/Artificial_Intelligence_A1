@@ -19,7 +19,6 @@ BROWSERS = [r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
 
 data = json.load(open(os.path.join(ROOT, 'tools', 'results.json')))
 R = {e['label']: e for e in data['experiments']}
-BROKEN = {b['label']: b for b in data['broken']}
 GRADE = data['autograder']
 GRADE_TOTAL = '%g/%g' % tuple(GRADE['total'])
 GRADE_PASSING = all(q['got'] >= q['max'] for q in GRADE['questions'])
@@ -150,9 +149,8 @@ BODY = """
  </ul>
  <h3>Design rules followed</h3>
  <p>Only <code>search.py</code>, <code>searchAgents.py</code> and the new layout were edited. Every algorithm is written
- inside its own provided function; the single exception is <code>depthFirstSearch</code>, which calls the helper
- <code>_depthFirstSearch</code> so the mandatory North-East-South-West order is enforced without touching
- <code>PositionSearchProblem</code>. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
+ inside its own provided function, with no helper delegation, and expands successors in the order
+ <code>getSuccessors</code> returns them. The CSV logger is one shared class in <code>search.py</code>, called from inside each loop.</p>
  <div class="callout"><b>How the CSV trace reads.</b> One row is written for every expanded state with the columns
  <code>iteration, expanded_state, parent, action, generated_successors, frontier_before, frontier_after, explored, g, h, f</code>.
  The frontier is printed with the next state to be expanded first. DFS, BFS and UCS log <code>h = 0</code> and <code>f = g</code>;
@@ -179,7 +177,7 @@ BODY = """
  function and it is negligible at maze sizes.</p>
  <h3>Implementation notes</h3>
  <ul>
-  <li><b>DFS</b> marks a state explored when it is popped, skips stale duplicates, and always pushes reordered successors in reverse so the mandatory N&ndash;E&ndash;S&ndash;W order is expanded correctly by the LIFO stack.</li>
+  <li><b>DFS</b> marks a state explored when it is popped, skips stale duplicates, and pushes successors in <code>getSuccessors</code> order (N, S, E, W), so the LIFO stack expands West first.</li>
   <li><b>BFS</b> checks a <i>seen</i> set before pushing, so a state enters the queue once. That keeps the first path found the shortest.</li>
   <li><b>UCS</b> queues the bare state and calls <code>PriorityQueue.update</code>, so a cheaper path to a state already in the fringe lowers its priority instead of adding a duplicate. Costs and paths live in dictionaries.</li>
   <li><b>GBFS</b> orders by <code>h</code> only. A state's priority never changes, so it is queued once. The heuristic is passed as <code>heuristic=name</code> on the command line through the unchanged <code>SearchAgent</code>.</li>
@@ -299,7 +297,7 @@ BODY = """
   %(fig_astar)s
  </div>
  <div class="callout">GBFS expands %(gbfs_c)s nodes and A* %(astar_c)s, so greedy is cheaper to run, but its path is %(extra)s steps (%(pct)s%%) longer. BFS and UCS find the same optimum as A*
- with %(bfs_c)s nodes. PDF-ordered DFS also reaches the optimal cost %(dfs_cost)s, while expanding %(dfs_c)s nodes.</div>
+ with %(bfs_c)s nodes. DFS is not optimal here: it finds a path of cost %(dfs_cost)s (same as GBFS) while expanding only %(dfs_c)s nodes.</div>
  <table>
   <tr><th>Run</th><th class="num">Path cost</th><th class="num">Nodes expanded</th><th class="num">Seconds</th></tr>
   %(rows_custom)s
@@ -365,7 +363,7 @@ def main():
         dfs_c=n('custom_dfs'), dfs_cost=n('custom_dfs', 'cost'),
         extra=g('custom_gbfs') - g('custom_astar'),
         pct=round(100.0 * (g('custom_gbfs') - g('custom_astar')) / g('custom_astar')),
-        fig_dfs=fig('dfs_mediumMaze', 'fn=dfs (mandatory N-E-S-W): cost %s, %s nodes.' % (n('dfs_mediumMaze', 'cost'), n('dfs_mediumMaze'))),
+        fig_dfs=fig('dfs_mediumMaze', 'fn=dfs (getSuccessors order): cost %s, %s nodes.' % (n('dfs_mediumMaze', 'cost'), n('dfs_mediumMaze'))),
         fig_ucsz=fig('ucs_mediumDenselyMaze', 'mediumDenselyMaze, fn=ucs.'),
         fig_stay=fig('ucs_stayEastSearch', 'stayEastSearch, fn=ucs, cost %s.' % n('ucs_stayEastSearch', 'cost')),
     )

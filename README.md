@@ -9,7 +9,7 @@
 
 Five search algorithms, two multi-goal problems, an automatic CSV trace for every run, and a custom maze built to fool greedy search, all on the UC Berkeley Pacman framework.
 
-**Status:** implementation follows the PDF literally and leaves all protected code untouched. The supplied q1 path fixture expects the starter's N-S-E-W successor order, while the PDF mandates N-E-S-W for DFS; this mismatch is documented rather than hidden.
+**Status:** all eight autograder questions pass (26/25 with the q7 bonus) and all protected code is untouched. The PDF names N-E-S-W for DFS, but the q1 reference solutions use the starter's N-S-E-W `getSuccessors` order, so DFS follows that order like every other algorithm; the mismatch is documented in section 3 below.
 
 ---
 
@@ -41,8 +41,7 @@ Path cost and nodes expanded, straight from the run output and cross-checked aga
 
 | Run | Cost | Nodes |
 |:---|---:|---:|
-| DFS tinyMaze / mediumMaze / bigMaze | 8 / 244 / 210 | 15 / 267 / 519 |
-| DFS alias N-E-S-W mediumMaze | 244 | 267 |
+| DFS tinyMaze / mediumMaze / bigMaze | 10 / 130 / 210 | 15 / 146 / 390 |
 | BFS mediumMaze / bigMaze | 68 / 210 | 269 / 620 |
 | UCS mediumMaze | 68 | 269 |
 | GBFS bigMaze (Manhattan / Euclidean) | 210 / 210 | 466 / 471 |
@@ -52,7 +51,7 @@ Path cost and nodes expanded, straight from the run output and cross-checked aga
 | A\* trickySearch | 60 | 255 |
 | ClosestDot bigSearch | 350 | one BFS per dot |
 
-**The greedy trap** (`24i3025Search`): DFS 37 steps (97 nodes), BFS 37, UCS 37, **GBFS 47** (54 nodes), **A\* 37** (84 nodes). Greedy search expands fewer nodes but commits to a long serpentine that looks close to the goal in Manhattan distance; A\* adds the cost already paid and takes the shorter route.
+**The greedy trap** (`24i3025Search`): DFS 47 steps (47 nodes), BFS 37, UCS 37, **GBFS 47** (54 nodes), **A\* 37** (84 nodes). Greedy search expands fewer nodes but commits to a long serpentine that looks close to the goal in Manhattan distance; A\* adds the cost already paid and takes the shorter route.
 
 ---
 

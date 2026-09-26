@@ -66,8 +66,6 @@ TAGS = {'ucs_stayEast': 'StayEastSearchAgent',
         'gbfs_bigMaze': 'manhattan', 'gbfs_bigMaze_euclid': 'euclidean',
         'astar_bigMaze': 'manhattan', 'astar_bigMaze_null': 'null'}
 
-# Commands that are expected to fail (none now that both UCS layouts exist).
-BROKEN = []
 
 
 def run(args, timeout=600, tag=''):
@@ -112,12 +110,6 @@ def main():
             row['screenshot'] = 'screenshots/%s.png' % label if os.path.exists(shot) else None
         results.append(row)
         print('%-22s cost=%s nodes=%s csv=%d' % (label, row['cost'], row['nodes'], len(made)))
-    broken = []
-    for label, args in BROKEN:
-        proc, _ = run(args + ' -q', timeout=60)
-        tail = (proc.stderr or proc.stdout).strip().splitlines()[-1:]
-        broken.append({'label': label, 'command': 'python pacman.py ' + args,
-                       'returncode': proc.returncode, 'message': tail})
     grader = subprocess.run([sys.executable, 'autograder.py', '--no-graphics'], cwd=PROJECT,
                             capture_output=True, text=True, timeout=900).stdout
     questions = [{'q': m[0], 'got': float(m[1]), 'max': float(m[2])}
@@ -128,7 +120,7 @@ def main():
     autograder = {'questions': questions,
                   'total': [float(total.group(1)), float(total.group(2))] if total else None}
     with open(os.path.join(ROOT, 'tools', 'results.json'), 'w') as fh:
-        json.dump({'experiments': results, 'broken': broken, 'autograder': autograder}, fh, indent=2)
+        json.dump({'experiments': results, 'autograder': autograder}, fh, indent=2)
     print('wrote tools/results.json')
 
 

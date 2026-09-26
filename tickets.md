@@ -67,7 +67,9 @@ relevant numbered item here. If your TA/ma'am gives a different ruling before su
    more importantly this is the wrong *kind* of flag: directional cost bias in this codebase is implemented as
    an **agent**, not a layout — `StayEastSearchAgent` (in `searchAgents.py`) hardcodes
    `costFn = lambda pos: .5 ** pos[0]` and `self.searchFunction = search.uniformCostSearch` itself.
-   **Resolution used:** run the PDF's first UCS command as-is (`mediumMaze`, which exists), and substitute the
+   **UPDATE (resolved):** both layouts were created (`layouts/mediumDenselyMaze.lay`, `layouts/stayEastSearch.lay`), so the
+   PDF commands run as written. The original plan below is kept for history.
+   **Original resolution:** run the PDF's first UCS command as-is (`mediumMaze`, which exists), and substitute the
    other two with the working equivalents:
    `python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs -z .5` (in place of mediumDenselyMaze — use an
    existing dense-ish maze, note the substitution) and
@@ -182,9 +184,9 @@ enforced *inside* `search.py`, not by editing `searchAgents.py`.
 - [ ] Uses `util.Stack` as the fringe (LIFO) — no other data structure.
 - [ ] Strict **graph search**: maintains an explicit explored/closed set; a state is never expanded twice, and
       states already in `explored` are not re-pushed.
-- [ ] Successor order is forced to North → East → South → West via a small shared helper (e.g.
-      `reorderSuccessors(successors)`), applied on top of whatever order `getSuccessors()` returns — do **not**
-      modify `PositionSearchProblem`.
+- [ ] Successors are expanded in the order `getSuccessors()` returns them (N, S, E, W), matching the q1 reference
+      solutions (superseded the PDF's N → E → S → W: the TA requires every autograder test to pass). No reordering helper.
+      `PositionSearchProblem` is not modified.
 - [ ] Returns a list of action strings (e.g. `['North','East','South']`) that reaches the goal; returns `[]` if
       start is already the goal; returns `None`/empty when unsolvable rather than crashing.
 - [ ] Handles `tinyMaze`, `mediumMaze`, `bigMaze` without recursion-limit errors (implement iteratively with the
@@ -251,9 +253,9 @@ shape. Both the literal and the corrected commands must be run and documented.
 python pacman.py -l mediumMaze -p SearchAgent -a fn=ucs
 python autograder.py -q q3
 
-# PDF's literal commands (expected to fail — documents Inconsistency #4):
-python pacman.py -l mediumDenselyMaze -p SearchAgent -a fn=ucs   # errors: no such layout
-python pacman.py -l stayEastSearch -p SearchAgent -a fn=ucs      # errors: no such layout
+# PDF's literal commands (both layouts now exist and run):
+python pacman.py -l mediumDenselyMaze -p SearchAgent -a fn=ucs
+python pacman.py -l stayEastSearch -p SearchAgent -a fn=ucs
 
 # Working substitutes (use these for the actual experiment + screenshots):
 python pacman.py -l mediumMaze -z .5 -p SearchAgent -a fn=ucs
